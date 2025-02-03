@@ -176,8 +176,17 @@ const sliceHeaderTmpl = `
 #include <stdlib.h>
 {{ $fullName := .Name }}
 {{- $name := Strip .Name "_t" }}
+{{- $arg := "" -}}
+{{- $items := "" -}}
+{{- if .Pointer -}}
+{{- $arg = "*val" -}}
+{{- $items = "**items" -}}
+{{- else -}}
+{{- $arg = "val" -}}
+{{- $items = "*items" -}}
+{{- end }}
 typedef struct {
-    {{ .Name }} *items;
+    {{ .Name }} {{ $items }};
     uint64_t len;
     uint64_t cap;
 } {{ $name }}_slice_t;
@@ -206,13 +215,6 @@ void
 {{ $fullName }}
 {{- end }}
 {{ $name }}_slice_get({{ $name }}_slice_t *s, uint64_t idx);
-
-{{- $arg := "" }}
-{{- if .Pointer }}
-{{- $arg = "*val" }}
-{{- else }}
-{{- $arg = "val" }}
-{{- end }}
 
 /**
  * {{ $name }}_slice_append attempts to append the data to the given array.
@@ -254,6 +256,13 @@ int
  */
 int
 {{ $name }}_slice_delete({{ $name }}_slice_t *s, const uint64_t idx);
+
+/**
+ * {{ $name }}_slice_replace replaces the value at the given element with the 
+ * given new value.
+ */
+int
+{{ $name }}_slice_replace({{ $name }}_slice_t *s, const uint64_t idx, const {{ .Name }} {{ $arg }});
 `
 
 const sliceImplementationTmpl = `
@@ -404,6 +413,18 @@ int
 		s->items[i] = s->items[i + 1];
 	}
 	s->len-1;
+
+	return 0;
+}
+
+int
+{{ $name }}_slice_replace({{ $name }}_slice_t *s, const uint64_t idx, const {{ .Name }} {{ $arg }})
+{
+	if (s->len == 0) {
+		return 1;
+	}
+
+	s->items[idx] = {{ $arg }}
 
 	return 0;
 }

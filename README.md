@@ -10,6 +10,8 @@
 * compare
 * copy
 * contains
+* delete
+* replace
 
 ## Contributing
 
