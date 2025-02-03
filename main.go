@@ -179,7 +179,7 @@ typedef struct {
  * is responsible for freeing this memory.
  */
 {{ $name }}_slice_t*
-{{ $name }}_slice_new(const int cap);
+{{ $name }}_slice_new(const uint64_t cap);
 
 /**
  * {{ $name }}_slice_free frees the memory used by the given pointer. 
@@ -223,6 +223,16 @@ void
  */
 int
 {{ $name }}_slice_compare(const {{ $name }}_slice_t *s1, const {{ $name }}_slice_t *s2);
+
+/**
+ * {{ $name }}_slice_copy takes 2 slices. The first is copied into the second
+ * with the number of elements copied being returned. The code assumes that 
+ * slice 2 has been created large enough to hold the contents of slice 1. If
+ * the overwrite option has been selected, the code will make sure there is 
+ * enough space in slice 2 and overwrite its contents.
+ */
+int
+{{ $name }}_slice_copy(const {{ $name }}_slice_t *s1, {{ $name }}_slice_t *s2, int overwrite);
 `
 
 const sliceImplementationTmpl = `
@@ -237,7 +247,7 @@ const sliceImplementationTmpl = `
 {{- $name := Strip .Name "_t" }}
 
 {{ $name }}_slice_t*
-{{ $name }}_slice_new(const int cap)
+{{ $name }}_slice_new(const uint64_t cap)
 {
     {{ $name }}_slice_t *s = calloc(1, sizeof({{ $name }}_slice_t));
     s->items = calloc(1, sizeof({{ .Name }}) * cap);
@@ -317,5 +327,23 @@ int
 	}
 
 	return 1;
+}
+
+int
+{{ $name }}_slice_copy(const {{ $name }}_slice_t *s1, {{ $name }}_slice_t *s2, int overwrite)
+{
+	if (overwrite) {
+		if (s1->len != s2->len) {
+			s2->cap = s1->cap;
+			s2->items = realloc(s2->items, sizeof({{ .Name }}) * s1->cap);
+		}
+	}
+
+	for (int i = 0; i < s1->len; i++) {
+		s2->items[i] = s1->items[i];
+		s2->len++;
+	}
+
+	return s2->len;
 }
 `

@@ -10,3 +10,4 @@ bin
 tests/tests
 example
 out
+.vscode
