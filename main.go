@@ -45,6 +45,7 @@ var (
 	vers        bool
 	typesFlag   string
 	pointerFlag bool
+	appendFlag  string
 )
 
 const usage = `version: %s
@@ -55,7 +56,9 @@ Options:
     -h            help
     -v            show version and exit
     -t            types, comma seperated (int8,int16,...)
-	-p            use a pointer for the given type(s)
+    -p            use a pointer for the given type(s)
+    -a            only generate implementation code and append 
+                  to the given file
 `
 
 // data used to be passed to the template engine.
@@ -79,6 +82,7 @@ func main() {
 	flag.BoolVar(&vers, "v", false, "")
 	flag.StringVar(&typesFlag, "t", "", "")
 	flag.BoolVar(&pointerFlag, "p", false, "")
+	flag.StringVar(&appendFlag, "a", "", "")
 	flag.Parse()
 
 	if vers {
@@ -160,9 +164,14 @@ func main() {
 }
 
 const sliceHeaderTmpl = `
-{{- if Contains .Name "bool" }}
+/**
+ * This is generated code from safe_array_gen. Please do not edit unless
+ * sure of what you are doing.
+ */
+
+{{ if Contains .Name "bool" -}}
 #include <stdbool.h>
-{{- end }}
+{{- end -}}
 #include <stdint.h>
 #include <stdlib.h>
 {{ $fullName := .Name }}
@@ -233,12 +242,29 @@ int
  */
 int
 {{ $name }}_slice_copy(const {{ $name }}_slice_t *s1, {{ $name }}_slice_t *s2, int overwrite);
+
+/**
+ * {{ $name }}_slice_contains checks to see if the given value is in the slice.
+ */
+int
+{{ $name }}_slice_contains(const {{ $name }}_slice_t *s, {{ .Name }} {{ $arg }});
+
+/**
+ * {{ $name }}_slice_delete removes the item at the given index.
+ */
+int
+{{ $name }}_slice_delete({{ $name }}_slice_t *s, const uint64_t idx);
 `
 
 const sliceImplementationTmpl = `
-{{- if Contains .Name "bool" }}
+/**
+ * This is generated code from safe_array_gen. Please do not edit unless
+ * sure of what you are doing.
+ */
+
+{{ if Contains .Name "bool" -}}
 #include <stdbool.h>
-{{- end }}
+{{- end -}}
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -316,7 +342,7 @@ int
 		return 0;
 	}
 
-	for (int i = 0; i < s1->len; i++) {
+	for (uint64_t i = 0; i < s1->len; i++) {
 {{- if .Pointer }}
     	if (*s1->items[i] != *s2->items[i]) {
 {{- else }}
@@ -339,11 +365,46 @@ int
 		}
 	}
 
-	for (int i = 0; i < s1->len; i++) {
+	for (uint64_t i = 0; i < s1->len; i++) {
 		s2->items[i] = s1->items[i];
 		s2->len++;
 	}
 
 	return s2->len;
+}
+
+int
+{{ $name }}_slice_contains(const {{ $name }}_slice_t *s, {{ .Name }} {{ $arg }})
+{
+	if (s->len == 0) {
+		return 0;
+	}
+
+	for (uint64_t i = 0; i < s->len; i++) {
+{{- if .Pointer }}
+    	if (*s->items[i] == val) {
+{{- else }}
+		if (s->items[i] == val) {
+{{- end }}
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+int
+{{ $name }}_slice_delete({{ $name }}_slice_t *s, const uint64_t idx)
+{
+	if (s->len == 0) {
+		return 1;
+	}
+
+	for (uint64_t i = idx; i < s->len-1; i++) {
+		s->items[i] = s->items[i + 1];
+	}
+	s->len-1;
+
+	return 0;
 }
 `
