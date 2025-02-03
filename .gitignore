@@ -1,0 +1,10 @@
+*.o
+*.so
+*.dynlib
+
+.vscode/*
+
+bin
+tests/tests
+example
+*.c
