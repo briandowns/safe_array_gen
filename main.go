@@ -42,8 +42,9 @@ var (
 )
 
 var (
-	vers      bool
-	typesFlag string
+	vers        bool
+	typesFlag   string
+	pointerFlag bool
 )
 
 const usage = `version: %s
@@ -54,7 +55,14 @@ Options:
     -h            help
     -v            show version and exit
     -t            types, comma seperated (int8,int16,...)
+	-p            use a pointer for the given type(s)
 `
+
+// data used to be passed to the template engine.
+type data struct {
+	Name    string
+	Pointer bool
+}
 
 func main() {
 	flag.Usage = func() {
@@ -70,6 +78,7 @@ func main() {
 
 	flag.BoolVar(&vers, "v", false, "")
 	flag.StringVar(&typesFlag, "t", "", "")
+	flag.BoolVar(&pointerFlag, "p", false, "")
 	flag.Parse()
 
 	if vers {
