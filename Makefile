@@ -22,7 +22,7 @@ clean:
 	$(GO) clean
 	rm -f $(BINARY)
 	rm -f $(BINDIR)/*
-	rm -f *.c
+	rm -f *.c *.h
 
 .PHONY: install
 install: clean

@@ -216,6 +216,13 @@ void
  */
 void
 {{ $name }}_slice_reverse({{ $name }}_slice_t *s);
+
+/**
+ * {{ $name }}_slice_compare takes 2 slices, compares them element by element
+ * and returns 0 if they are not the same and 1 if they are.
+ */
+int
+{{ $name }}_slice_compare(const {{ $name }}_slice_t *s1, const {{ $name }}_slice_t *s2);
 `
 
 const sliceImplementationTmpl = `
@@ -290,5 +297,25 @@ void
         i--;
         j++;
     }
+}
+
+int
+{{ $name }}_slice_compare(const {{ $name }}_slice_t *s1, const {{ $name }}_slice_t *s2)
+{
+	if (s1->len != s2->len) {
+		return 0;
+	}
+
+	for (int i = 0; i < s1->len; i++) {
+{{- if .Pointer }}
+    	if (*s1->items[i] != *s2->items[i]) {
+{{- else }}
+		if (s1->items[i] != s2->items[i]) {
+{{- end }}
+			return 0;
+		}
+	}
+
+	return 1;
 }
 `

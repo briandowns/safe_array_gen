@@ -1,3 +1,5 @@
+*.c
+*.h
 *.o
 *.so
 *.dynlib
@@ -7,6 +9,4 @@
 bin
 tests/tests
 example
-*.c
-*.h
 out
