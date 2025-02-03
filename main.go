@@ -119,7 +119,12 @@ func main() {
 		}
 		defer f.Close()
 
-		if err := tmp1.Execute(f, t); err != nil {
+		d := data{
+			Name:    t,
+			Pointer: pointerFlag,
+		}
+
+		if err := tmp1.Execute(f, &d); err != nil {
 			fmt.Fprint(os.Stderr, err)
 			os.Exit(1)
 		}
@@ -129,15 +134,15 @@ func main() {
 }
 
 const sliceTmpl = `
-{{- if Contains . "bool" }}
+{{- if Contains .Name "bool" }}
 #include <stdbool.h>
 {{- end }}
 #include <stdint.h>
 #include <stdlib.h>
-{{ $fullName := . }}
-{{- $name := Strip . "_t" }}
+{{ $fullName := .Name }}
+{{- $name := Strip .Name "_t" }}
 typedef struct {
-    {{.}} *items;
+    {{ .Name }} *items;
     uint64_t len;
     uint64_t cap;
 } {{ $name }}_slice_t;
@@ -151,7 +156,7 @@ typedef struct {
 {{ $name }}_slice_new(const int cap)
 {
     {{ $name }}_slice_t *s = calloc(1, sizeof({{ $name }}_slice_t));
-    s->items = calloc(1, sizeof({{.}}) * cap);
+    s->items = calloc(1, sizeof({{ .Name }}) * cap);
     s->len = 0;
     s->cap = cap;
 
@@ -171,7 +176,11 @@ void
  * {{ $name }}_slice_get attempts to retrieve the value at the given index. If
  * the index is out of range, 0 is returned indicating an error.
  */
-{{$fullName}}
+{{- if .Pointer }}
+{{ $fullName }}*
+{{- else }}
+{{ $fullName }}
+{{- end }}
 {{ $name }}_slice_get({{ $name }}_slice_t *s, uint64_t idx)
 {
     if (idx >= 0 && idx < s->len) {
@@ -184,12 +193,16 @@ void
 /**
  * {{ $name }}_slice_append attempts to append the data to the given array.
  */
-{{.}}
-{{ $name }}_slice_append({{ $name }}_slice_t *s, const {{.}} val)
+void
+{{- if .Pointer }}
+{{ $name }}_slice_append({{ $name }}_slice_t *s, const {{ .Name }} *val)
+{{- else }}
+{{ $name }}_slice_append({{ $name }}_slice_t *s, const {{ .Name }} val)
+{{- end }}
 {
     if (s->len == s->cap) {
         s->cap *= 2;
-        s->items = realloc(s->items, sizeof({{.}}) * s->cap);
+        s->items = realloc(s->items, sizeof({{ .Name }}) * s->cap);
     }
     s->items[s->len++] = val;
 }
