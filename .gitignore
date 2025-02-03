@@ -8,3 +8,5 @@ bin
 tests/tests
 example
 *.c
+*.h
+out

@@ -104,8 +104,8 @@ func main() {
 		},
 	}
 
-	tmp1 := template.New("slice_gen").Funcs(funcMap)
-	tmp1, err := tmp1.Parse(sliceTmpl)
+	implementationTmpl := template.New("slice_implementation_gen").Funcs(funcMap)
+	tmp1, err := implementationTmpl.Parse(sliceImplementationTmpl)
 	if err != nil {
 		fmt.Fprint(os.Stderr, err)
 		os.Exit(1)
@@ -130,10 +130,36 @@ func main() {
 		}
 	}
 
+	headerTmpl := template.New("slice_header_gen").Funcs(funcMap)
+	tmp2, err := headerTmpl.Parse(sliceHeaderTmpl)
+	if err != nil {
+		fmt.Fprint(os.Stderr, err)
+		os.Exit(1)
+	}
+
+	for _, t := range types {
+		f, err := os.Create(t + "_slice.h")
+		if err != nil {
+			fmt.Fprint(os.Stderr, err)
+			os.Exit(1)
+		}
+		defer f.Close()
+
+		d := data{
+			Name:    t,
+			Pointer: pointerFlag,
+		}
+
+		if err := tmp2.Execute(f, &d); err != nil {
+			fmt.Fprint(os.Stderr, err)
+			os.Exit(1)
+		}
+	}
+
 	os.Exit(0)
 }
 
-const sliceTmpl = `
+const sliceHeaderTmpl = `
 {{- if Contains .Name "bool" }}
 #include <stdbool.h>
 {{- end }}
@@ -153,6 +179,57 @@ typedef struct {
  * is responsible for freeing this memory.
  */
 {{ $name }}_slice_t*
+{{ $name }}_slice_new(const int cap);
+
+/**
+ * {{ $name }}_slice_free frees the memory used by the given pointer. 
+ */
+void
+{{ $name }}_slice_free({{ $name }}_slice_t *s);
+
+/**
+ * {{ $name }}_slice_get attempts to retrieve the value at the given index. If
+ * the index is out of range, 0 is returned indicating an error.
+ */
+{{- if .Pointer }}
+{{ $fullName }}*
+{{- else }}
+{{ $fullName }}
+{{- end }}
+{{ $name }}_slice_get({{ $name }}_slice_t *s, uint64_t idx);
+
+{{- $arg := "" }}
+{{- if .Pointer }}
+{{- $arg = "*val" }}
+{{- else }}
+{{- $arg = "val" }}
+{{- end }}
+
+/**
+ * {{ $name }}_slice_append attempts to append the data to the given array.
+ */
+void
+{{ $name }}_slice_append({{ $name }}_slice_t *s, const {{ .Name }} {{ $arg }});
+
+/**
+ * {{ $name }}_slice_reverse the contents of the array.
+ */
+void
+{{ $name }}_slice_reverse({{ $name }}_slice_t *s);
+`
+
+const sliceImplementationTmpl = `
+{{- if Contains .Name "bool" }}
+#include <stdbool.h>
+{{- end }}
+#include <stdint.h>
+#include <stdlib.h>
+
+#include "{{ .Name }}_slice.h"
+{{ $fullName := .Name }}
+{{- $name := Strip .Name "_t" }}
+
+{{ $name }}_slice_t*
 {{ $name }}_slice_new(const int cap)
 {
     {{ $name }}_slice_t *s = calloc(1, sizeof({{ $name }}_slice_t));
@@ -163,19 +240,13 @@ typedef struct {
     return s;
 }
 
-/**
- * {{ $name }}_slice_free frees the memory used by the given pointer. 
- */
 void
 {{ $name }}_slice_free({{ $name }}_slice_t *s) {
     free(s->items);
     free(s);
 }
 
-/**
- * {{ $name }}_slice_get attempts to retrieve the value at the given index. If
- * the index is out of range, 0 is returned indicating an error.
- */
+
 {{- if .Pointer }}
 {{ $fullName }}*
 {{- else }}
@@ -190,20 +261,34 @@ void
     return 0;
 }
 
-/**
- * {{ $name }}_slice_append attempts to append the data to the given array.
- */
-void
+{{- $arg := "" }}
 {{- if .Pointer }}
-{{ $name }}_slice_append({{ $name }}_slice_t *s, const {{ .Name }} *val)
+{{- $arg = "*val" }}
 {{- else }}
-{{ $name }}_slice_append({{ $name }}_slice_t *s, const {{ .Name }} val)
+{{- $arg = "val" }}
 {{- end }}
+
+void
+{{ $name }}_slice_append({{ $name }}_slice_t *s, const {{ .Name }} {{ $arg }})
 {
     if (s->len == s->cap) {
         s->cap *= 2;
         s->items = realloc(s->items, sizeof({{ .Name }}) * s->cap);
     }
     s->items[s->len++] = val;
+}
+
+void
+{{ $name }}_slice_reverse({{ $name }}_slice_t *s) {
+	uint64_t i = s->len - 1;
+    uint64_t j = 0;
+
+    while(i > j) {
+        {{ .Name }} temp = s->items[i];
+        s->items[i] = s->items[j];
+        s->items[j] = temp;
+        i--;
+        j++;
+    }
 }
 `
