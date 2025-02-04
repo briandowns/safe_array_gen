@@ -420,7 +420,7 @@ int
 int
 {{ $name }}_slice_replace({{ $name }}_slice_t *s, const uint64_t idx, const {{ .Name }} {{ $arg }})
 {
-	if (s->len == 0) {
+	if (s->len == 0 || idx > s->len) {
 		return 1;
 	}
 
