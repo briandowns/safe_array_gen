@@ -1,4 +1,6 @@
-# Safe Array Generator
+# Safe Array Generator (sag)
+
+sag makes generating safe arrays in easy. Safe arrays are simply arrays but wrapped in functions that perform basic bounds checking. These functions are kept simple such that whatever compiler you're using can optimize them away and take advantage of CPU branch prediction. Arrays will grow dynamically when necessary.
 
 ## Functions Generated
 
@@ -12,6 +14,18 @@
 * contains
 * delete
 * replace
+
+## Usage
+
+sag is CLI driven and takes flags and arguments as input.
+
+E.g.
+
+Generate the "array" and associated functions.
+
+```sh
+sag -t uint8_t
+```
 
 ## Contributing
 
