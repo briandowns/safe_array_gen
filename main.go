@@ -118,6 +118,9 @@ func main() {
 		"Strip": func(s, ss string) string {
 			return strings.Replace(s, ss, "", 1)
 		},
+		"Concat": func(str1, str2 string) string {
+			return str1 + str2
+		},
 	}
 
 	implementationTmpl := template.New("slice_implementation_gen").Funcs(funcMap)
