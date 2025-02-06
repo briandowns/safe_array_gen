@@ -21,18 +21,29 @@ const sliceHeaderTmpl = `/**
 {{- $items = "*items" -}}
 {{ end }}
 
+{{ $returnType := "" }}
+{{ if .CustomName -}}
+{{ $returnType = .CustomName }}
+typedef struct {
+    {{ .Name }} {{ $items }};
+    uint64_t len;
+    uint64_t cap;
+} {{ .CustomName }};
+{{- else -}}
+{{ $returnType = $name }}_slice_t
 typedef struct {
     {{ .Name }} {{ $items }};
     uint64_t len;
     uint64_t cap;
 } {{ $name }}_slice_t;
+{{- end }}
 
 /**
- * {{ $name }}_slice_new creates a pointer of type {{ $name }}_slice_t, sets
+ * {{ $name }}_slice_new creates a pointer of type {{ $returnType }}, sets
  * default values, and returns the pointer to the allocated memory. The user
  * is responsible for freeing this memory.
  */
-{{ $name }}_slice_t*
+{{ $returnType }}*
 {{ $name }}_slice_new(const uint64_t cap);
 
 /**
