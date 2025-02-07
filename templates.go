@@ -23,9 +23,11 @@ const sliceHeaderTmpl = `/**
 
 {{- $typeName := "" }}
 {{- $funcPrefix := "" }}
+{{- $typeArg := "" -}}
 {{- if .CustomName -}}
 {{- $typeName = .CustomName }}
 {{- $funcPrefix = $typeName }}
+{{ $typeArg = printf "%c" (index $typeName 0) -}}
 typedef struct {
     {{ .Name }} {{ $items }};
     uint64_t len;
@@ -34,6 +36,7 @@ typedef struct {
 {{- else -}}
 {{- $typeName = printf "%s_slice_t" $name }}
 {{- $funcPrefix = printf "%s_slice" $name }}
+{{- $typeArg = "s" -}}
 typedef struct {
     {{ .Name }} {{ $items }};
     uint64_t len;
@@ -53,7 +56,7 @@ typedef struct {
  * {{ $funcPrefix }}_free frees the memory used by the given pointer. 
  */
 void
-{{ $funcPrefix }}_free({{ $typeName }} *s);
+{{ $funcPrefix }}_free({{ $typeName }} *{{ $typeArg }});
 
 /**
  * {{ $funcPrefix }}_get attempts to retrieve the value at the given index. If
@@ -70,20 +73,20 @@ void
  * {{ $funcPrefix }}_append attempts to append the data to the given array.
  */
 void
-{{ $funcPrefix }}_append({{ $typeName }} *{{ printf "%c" (index .typeName 0)}}, const {{ .Name }} {{ $arg }});
+{{ $funcPrefix }}_append({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} {{ $arg }});
 
 /**
  * {{ $funcPrefix }}_reverse the contents of the array.
  */
 void
-{{ $funcPrefix }}_reverse({{ $typeName }} *s);
+{{ $funcPrefix }}_reverse({{ $typeName }} *{{ $typeArg }});
 
 /**
  * {{ $funcPrefix }}_compare takes 2 slices, compares them element by element
  * and returns 0 if they are not the same and 1 if they are.
  */
 int
-{{ $funcPrefix }}_compare(const {{ $typeName }} *s1, const {{ $typeName }} *s2);
+{{ $funcPrefix }}_compare(const {{ $typeName }} *{{ $typeArg }}1, const {{ $typeName }} *{{ $typeArg }}2);
 
 /**
  * {{ $funcPrefix }}_copy takes 2 slices. The first is copied into the second
@@ -93,26 +96,26 @@ int
  * enough space in slice 2 and overwrite its contents.
  */
 int
-{{ $funcPrefix }}_copy(const {{ $typeName }} *s1, {{ $typeName }} *s2, int overwrite);
+{{ $funcPrefix }}_copy(const {{ $typeName }} *{{ $typeArg }}1, {{ $typeName }} *{{ $typeArg }}2, int overwrite);
 
 /**
  * {{ $funcPrefix }}_contains checks to see if the given value is in the slice.
  */
 int
-{{ $funcPrefix }}_contains(const {{ $typeName }} *s, {{ .Name }} {{ $arg }});
+{{ $funcPrefix }}_contains(const {{ $typeName }} *{{ $typeArg }}, {{ .Name }} {{ $arg }});
 
 /**
  * {{ $funcPrefix }}_delete removes the item at the given index.
  */
 int
-{{ $funcPrefix }}_delete({{ $typeName }} *s, const uint64_t idx);
+{{ $funcPrefix }}_delete({{ $typeName }} *{{ $typeArg }}, const uint64_t idx);
 
 /**
  * {{ $funcPrefix }}_replace replaces the value at the given element with the 
  * given new value.
  */
 int
-{{ $funcPrefix }}_replace({{ $typeName }} *s, const uint64_t idx, const {{ .Name }} {{ $arg }});
+{{ $funcPrefix }}_replace({{ $typeName }} *{{ $typeArg }}, const uint64_t idx, const {{ .Name }} {{ $arg }});
 `
 
 const sliceImplementationTmpl = `
@@ -125,6 +128,7 @@ const sliceImplementationTmpl = `
 {{- $arg := "" }}
 {{- $items := "" -}}
 {{- $typeName := "" }}
+{{- $typeArg := "" -}}
 {{- $funcPrefix := "" }}
 {{- if .Pointer -}}
 {{- $arg = "*val" -}}
@@ -137,9 +141,11 @@ const sliceImplementationTmpl = `
 {{- if .CustomName -}}
 {{- $typeName = .CustomName }}
 {{- $funcPrefix = $typeName }}
+{{- $typeArg = printf "%c" (index $typeName 0) -}}
 {{- else -}}
 {{- $typeName = printf "%s_slice_t" $name }}
 {{- $funcPrefix = printf "%s_slice" $name }}
+{{- $typeArg = "s" -}}
 {{- end }}
 
 {{- if not .Append }}
@@ -162,18 +168,18 @@ typedef struct {
 {{ $typeName }}*
 {{ $funcPrefix }}_new(const uint64_t cap)
 {
-    {{ $typeName }} *s = calloc(1, sizeof({{ $name }}_slice_t));
-    s->items = calloc(1, sizeof({{ .Name }}) * cap);
-    s->len = 0;
-    s->cap = cap;
+    {{ $typeName }} *{{ $typeArg }} = calloc(1, sizeof({{ $typeName }}));
+    {{ $typeArg }}->items = calloc(1, sizeof({{ .Name }}) * cap);
+    {{ $typeArg }}->len = 0;
+    {{ $typeArg }}->cap = cap;
 
-    return s;
+    return {{ $typeArg }};
 }
 
 void
-{{ $funcPrefix }}_free({{ $typeName }} *s) {
-    free(s->items);
-    free(s);
+{{ $funcPrefix }}_free({{ $typeName }} *{{ $typeArg }}) {
+    free({{ $typeArg }}->items);
+    free({{ $typeArg }});
 }
 
 {{ if .Pointer -}}
@@ -181,51 +187,51 @@ void
 {{- else }}
 {{ .Name }}
 {{- end }}
-{{ $funcPrefix }}_get({{ $typeName }} *s, uint64_t idx)
+{{ $funcPrefix }}_get({{ $typeName }} *{{ $typeArg }}, uint64_t idx)
 {
-    if (idx >= 0 && idx < s->len) {
-        return s->items[idx];
+    if (idx >= 0 && idx < {{ $typeArg }}->len) {
+        return {{ $typeArg }}->items[idx];
     }
 
     return 0;
 }
 
 void
-{{ $funcPrefix }}_append({{ $typeName }} *s, const {{ .Name }} {{ $arg }})
+{{ $funcPrefix }}_append({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} {{ $arg }})
 {
-    if (s->len == s->cap) {
-        s->cap *= 2;
-        s->items = realloc(s->items, sizeof({{ .Name }}) * s->cap);
+    if ({{ $typeArg }}->len == {{ $typeArg }}->cap) {
+        {{ $typeArg }}->cap *= 2;
+        {{ $typeArg }}->items = realloc({{ $typeArg }}->items, sizeof({{ .Name }}) * {{ $typeArg }}->cap);
     }
-    s->items[s->len++] = val;
+    {{ $typeArg }}->items[{{ $typeArg }}->len++] = val;
 }
 
 void
-{{ $funcPrefix }}_reverse({{ $name }}_slice_t *s) {
-	uint64_t i = s->len - 1;
+{{ $funcPrefix }}_reverse({{ $typeName }} *{{ $typeArg }}) {
+	uint64_t i = {{ $typeArg }}->len - 1;
     uint64_t j = 0;
 
     while(i > j) {
-        {{ .Name }} temp = s->items[i];
-        s->items[i] = s->items[j];
-        s->items[j] = temp;
+        {{ .Name }} temp = {{ $typeArg }}->items[i];
+        {{ $typeArg }}->items[i] = {{ $typeArg }}->items[j];
+        {{ $typeArg }}->items[j] = temp;
         i--;
         j++;
     }
 }
 
 int
-{{ $funcPrefix }}_compare(const {{ $typeName }} *s1, const {{ $typeName }} *s2)
+{{ $funcPrefix }}_compare(const {{ $typeName }} *{{ $typeArg }}1, const {{ $typeName }} *{{ $typeArg }}2)
 {
-	if (s1->len != s2->len) {
+	if ({{ $typeArg }}1->len != {{ $typeArg }}2->len) {
 		return 0;
 	}
 
-	for (uint64_t i = 0; i < s1->len; i++) {
+	for (uint64_t i = 0; i < {{ $typeArg }}1->len; i++) {
 {{- if .Pointer }}
-    	if (*s1->items[i] != *s2->items[i]) {
+    	if (*{{ $typeArg }}1->items[i] != *{{ $typeArg }}2->items[i]) {
 {{- else }}
-		if (s1->items[i] != s2->items[i]) {
+		if ({{ $typeArg }}1->items[i] != {{ $typeArg }}2->items[i]) {
 {{- end }}
 			return 0;
 		}
@@ -235,35 +241,35 @@ int
 }
 
 int
-{{ $funcPrefix }}_copy(const {{ $typeName }} *s1, {{ $typeName }} *s2, int overwrite)
+{{ $funcPrefix }}_copy(const {{ $typeName }} *{{ $typeArg }}1, {{ $typeName }} *{{ $typeArg }}2, int overwrite)
 {
 	if (overwrite) {
-		if (s1->len != s2->len) {
-			s2->cap = s1->cap;
-			s2->items = realloc(s2->items, sizeof({{ .Name }}) * s1->cap);
+		if ({{ $typeArg }}1->len != {{ $typeArg }}2->len) {
+			{{ $typeArg }}2->cap = {{ $typeArg }}1->cap;
+			{{ $typeArg }}2->items = realloc({{ $typeArg }}2->items, sizeof({{ .Name }}) * {{ $typeArg }}1->cap);
 		}
 	}
 
-	for (uint64_t i = 0; i < s1->len; i++) {
-		s2->items[i] = s1->items[i];
-		s2->len++;
+	for (uint64_t i = 0; i < {{ $typeArg }}1->len; i++) {
+		{{ $typeArg }}2->items[i] = {{ $typeArg }}1->items[i];
+		{{ $typeArg }}2->len++;
 	}
 
-	return s2->len;
+	return {{ $typeArg }}2->len;
 }
 
 int
-{{ $funcPrefix }}_contains(const {{ $typeName }} *s, {{ .Name }} {{ $arg }})
+{{ $funcPrefix }}_contains(const {{ $typeName }} *{{ $typeArg }}, {{ .Name }} {{ $arg }})
 {
-	if (s->len == 0) {
+	if ({{ $typeArg }}->len == 0) {
 		return 0;
 	}
 
-	for (uint64_t i = 0; i < s->len; i++) {
+	for (uint64_t i = 0; i < {{ $typeArg }}->len; i++) {
 {{- if .Pointer }}
-    	if (*s->items[i] == val) {
+    	if (*{{ $typeArg }}->items[i] == val) {
 {{- else }}
-		if (s->items[i] == val) {
+		if ({{ $typeArg }}->items[i] == val) {
 {{- end }}
 			return 1;
 		}
@@ -273,28 +279,28 @@ int
 }
 
 int
-{{ $funcPrefix }}_delete({{ $typeName }} *s, const uint64_t idx)
+{{ $funcPrefix }}_delete({{ $typeName }} *{{ $typeArg }}, const uint64_t idx)
 {
-	if (s->len == 0) {
+	if ({{ $typeArg }}->len == 0) {
 		return 1;
 	}
 
-	for (uint64_t i = idx; i < s->len-1; i++) {
-		s->items[i] = s->items[i + 1];
+	for (uint64_t i = idx; i < {{ $typeArg }}->len-1; i++) {
+		{{ $typeArg }}->items[i] = {{ $typeArg }}->items[i + 1];
 	}
-	s->len-1;
+	{{ $typeArg }}->len-1;
 
 	return 0;
 }
 
 int
-{{ $funcPrefix }}_replace({{ $typeName }} *s, const uint64_t idx, const {{ .Name }} {{ $arg }})
+{{ $funcPrefix }}_replace({{ $typeName }} *{{ $typeArg }}, const uint64_t idx, const {{ .Name }} {{ $arg }})
 {
-	if (s->len == 0 || idx > s->len) {
+	if ({{ $typeArg }}->len == 0 || idx > {{ $typeArg }}->len) {
 		return 1;
 	}
 
-	s->items[idx] = {{ $arg }};
+	{{ $typeArg }}->items[idx] = {{ $arg }};
 
 	return 0;
 }
