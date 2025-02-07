@@ -70,7 +70,7 @@ void
  * {{ $funcPrefix }}_append attempts to append the data to the given array.
  */
 void
-{{ $funcPrefix }}_append({{ $typeName }} *s, const {{ .Name }} {{ $arg }});
+{{ $funcPrefix }}_append({{ $typeName }} *{{ printf "%c" (index .typeName 0)}}, const {{ .Name }} {{ $arg }});
 
 /**
  * {{ $funcPrefix }}_reverse the contents of the array.
