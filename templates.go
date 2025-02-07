@@ -10,7 +10,7 @@ const sliceHeaderTmpl = `/**
 {{- end -}}
 #include <stdint.h>
 #include <stdlib.h>
-{{- $name := Strip .Name "_t" }}
+{{ $name := Strip .Name "_t" }}
 {{- $arg := "" -}}
 {{- $items := "" -}}
 {{- if .Pointer -}}
@@ -21,28 +21,45 @@ const sliceHeaderTmpl = `/**
 {{- $items = "*items" -}}
 {{ end }}
 
+{{- $typeName := "" }}
+{{- $funcPrefix := "" }}
+{{- $typeArg := "" -}}
+{{- if .CustomName -}}
+{{- $typeName = .CustomName }}
+{{- $funcPrefix = $typeName }}
+{{ $typeArg = printf "%c" (index $typeName 0) -}}
 typedef struct {
     {{ .Name }} {{ $items }};
     uint64_t len;
     uint64_t cap;
-} {{ $name }}_slice_t;
+} {{ $typeName }};
+{{- else -}}
+{{- $typeName = printf "%s_slice_t" $name }}
+{{- $funcPrefix = printf "%s_slice" $name }}
+{{- $typeArg = "s" -}}
+typedef struct {
+    {{ .Name }} {{ $items }};
+    uint64_t len;
+    uint64_t cap;
+} {{ $typeName }};
+{{- end }}
 
 /**
- * {{ $name }}_slice_new creates a pointer of type {{ $name }}_slice_t, sets
+ * {{ $funcPrefix }}_new creates a pointer of type {{ $typeName }}, sets
  * default values, and returns the pointer to the allocated memory. The user
  * is responsible for freeing this memory.
  */
-{{ $name }}_slice_t*
-{{ $name }}_slice_new(const uint64_t cap);
+{{ $typeName }}*
+{{ $funcPrefix }}_new(const uint64_t cap);
 
 /**
- * {{ $name }}_slice_free frees the memory used by the given pointer. 
+ * {{ $funcPrefix }}_free frees the memory used by the given pointer. 
  */
 void
-{{ $name }}_slice_free({{ $name }}_slice_t *s);
+{{ $funcPrefix }}_free({{ $typeName }} *{{ $typeArg }});
 
 /**
- * {{ $name }}_slice_get attempts to retrieve the value at the given index. If
+ * {{ $funcPrefix }}_get attempts to retrieve the value at the given index. If
  * the index is out of range, 0 is returned indicating an error.
  */
 {{- if .Pointer }}
@@ -50,55 +67,55 @@ void
 {{- else }}
 {{ .Name }}
 {{- end }}
-{{ $name }}_slice_get({{ $name }}_slice_t *s, uint64_t idx);
+{{ $funcPrefix }}_get({{ $typeName }} *s, uint64_t idx);
 
 /**
- * {{ $name }}_slice_append attempts to append the data to the given array.
+ * {{ $funcPrefix }}_append attempts to append the data to the given array.
  */
 void
-{{ $name }}_slice_append({{ $name }}_slice_t *s, const {{ .Name }} {{ $arg }});
+{{ $funcPrefix }}_append({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} {{ $arg }});
 
 /**
- * {{ $name }}_slice_reverse the contents of the array.
+ * {{ $funcPrefix }}_reverse the contents of the array.
  */
 void
-{{ $name }}_slice_reverse({{ $name }}_slice_t *s);
+{{ $funcPrefix }}_reverse({{ $typeName }} *{{ $typeArg }});
 
 /**
- * {{ $name }}_slice_compare takes 2 slices, compares them element by element
+ * {{ $funcPrefix }}_compare takes 2 slices, compares them element by element
  * and returns 0 if they are not the same and 1 if they are.
  */
 int
-{{ $name }}_slice_compare(const {{ $name }}_slice_t *s1, const {{ $name }}_slice_t *s2);
+{{ $funcPrefix }}_compare(const {{ $typeName }} *{{ $typeArg }}1, const {{ $typeName }} *{{ $typeArg }}2);
 
 /**
- * {{ $name }}_slice_copy takes 2 slices. The first is copied into the second
+ * {{ $funcPrefix }}_copy takes 2 slices. The first is copied into the second
  * with the number of elements copied being returned. The code assumes that 
  * slice 2 has been created large enough to hold the contents of slice 1. If
  * the overwrite option has been selected, the code will make sure there is 
  * enough space in slice 2 and overwrite its contents.
  */
 int
-{{ $name }}_slice_copy(const {{ $name }}_slice_t *s1, {{ $name }}_slice_t *s2, int overwrite);
+{{ $funcPrefix }}_copy(const {{ $typeName }} *{{ $typeArg }}1, {{ $typeName }} *{{ $typeArg }}2, int overwrite);
 
 /**
- * {{ $name }}_slice_contains checks to see if the given value is in the slice.
+ * {{ $funcPrefix }}_contains checks to see if the given value is in the slice.
  */
 int
-{{ $name }}_slice_contains(const {{ $name }}_slice_t *s, {{ .Name }} {{ $arg }});
+{{ $funcPrefix }}_contains(const {{ $typeName }} *{{ $typeArg }}, {{ .Name }} {{ $arg }});
 
 /**
- * {{ $name }}_slice_delete removes the item at the given index.
+ * {{ $funcPrefix }}_delete removes the item at the given index.
  */
 int
-{{ $name }}_slice_delete({{ $name }}_slice_t *s, const uint64_t idx);
+{{ $funcPrefix }}_delete({{ $typeName }} *{{ $typeArg }}, const uint64_t idx);
 
 /**
- * {{ $name }}_slice_replace replaces the value at the given element with the 
+ * {{ $funcPrefix }}_replace replaces the value at the given element with the 
  * given new value.
  */
 int
-{{ $name }}_slice_replace({{ $name }}_slice_t *s, const uint64_t idx, const {{ .Name }} {{ $arg }});
+{{ $funcPrefix }}_replace({{ $typeName }} *{{ $typeArg }}, const uint64_t idx, const {{ .Name }} {{ $arg }});
 `
 
 const sliceImplementationTmpl = `
@@ -110,6 +127,9 @@ const sliceImplementationTmpl = `
 {{- $name := Strip .Name "_t" }}
 {{- $arg := "" }}
 {{- $items := "" -}}
+{{- $typeName := "" }}
+{{- $typeArg := "" -}}
+{{- $funcPrefix := "" }}
 {{- if .Pointer -}}
 {{- $arg = "*val" -}}
 {{- $items = "**items" -}}
@@ -118,6 +138,16 @@ const sliceImplementationTmpl = `
 {{- $items = "*items" -}}
 {{- end -}}
 
+{{- if .CustomName -}}
+{{- $typeName = .CustomName }}
+{{- $funcPrefix = $typeName }}
+{{- $typeArg = printf "%c" (index $typeName 0) -}}
+{{- else -}}
+{{- $typeName = printf "%s_slice_t" $name }}
+{{- $funcPrefix = printf "%s_slice" $name }}
+{{- $typeArg = "s" -}}
+{{- end }}
+
 {{- if not .Append }}
 
 #include <stdbool.h>
@@ -125,31 +155,31 @@ const sliceImplementationTmpl = `
 #include <stdlib.h>
 
 #include "{{ .Name }}_slice.h"
-{{ else }}
+{{- else }}
 
 typedef struct {
     {{ .Name }} {{ $items }};
     uint64_t len;
     uint64_t cap;
-} {{ $name }}_slice_t;
+} {{ $typeName }};
 {{- end -}}
 {{- $name := Strip .Name "_t" }}
 
-{{ $name }}_slice_t*
-{{ $name }}_slice_new(const uint64_t cap)
+{{ $typeName }}*
+{{ $funcPrefix }}_new(const uint64_t cap)
 {
-    {{ $name }}_slice_t *s = calloc(1, sizeof({{ $name }}_slice_t));
-    s->items = calloc(1, sizeof({{ .Name }}) * cap);
-    s->len = 0;
-    s->cap = cap;
+    {{ $typeName }} *{{ $typeArg }} = calloc(1, sizeof({{ $typeName }}));
+    {{ $typeArg }}->items = calloc(1, sizeof({{ .Name }}) * cap);
+    {{ $typeArg }}->len = 0;
+    {{ $typeArg }}->cap = cap;
 
-    return s;
+    return {{ $typeArg }};
 }
 
 void
-{{ $name }}_slice_free({{ $name }}_slice_t *s) {
-    free(s->items);
-    free(s);
+{{ $funcPrefix }}_free({{ $typeName }} *{{ $typeArg }}) {
+    free({{ $typeArg }}->items);
+    free({{ $typeArg }});
 }
 
 {{ if .Pointer -}}
@@ -157,51 +187,51 @@ void
 {{- else }}
 {{ .Name }}
 {{- end }}
-{{ $name }}_slice_get({{ $name }}_slice_t *s, uint64_t idx)
+{{ $funcPrefix }}_get({{ $typeName }} *{{ $typeArg }}, uint64_t idx)
 {
-    if (idx >= 0 && idx < s->len) {
-        return s->items[idx];
+    if (idx >= 0 && idx < {{ $typeArg }}->len) {
+        return {{ $typeArg }}->items[idx];
     }
 
     return 0;
 }
 
 void
-{{ $name }}_slice_append({{ $name }}_slice_t *s, const {{ .Name }} {{ $arg }})
+{{ $funcPrefix }}_append({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} {{ $arg }})
 {
-    if (s->len == s->cap) {
-        s->cap *= 2;
-        s->items = realloc(s->items, sizeof({{ .Name }}) * s->cap);
+    if ({{ $typeArg }}->len == {{ $typeArg }}->cap) {
+        {{ $typeArg }}->cap *= 2;
+        {{ $typeArg }}->items = realloc({{ $typeArg }}->items, sizeof({{ .Name }}) * {{ $typeArg }}->cap);
     }
-    s->items[s->len++] = val;
+    {{ $typeArg }}->items[{{ $typeArg }}->len++] = val;
 }
 
 void
-{{ $name }}_slice_reverse({{ $name }}_slice_t *s) {
-	uint64_t i = s->len - 1;
+{{ $funcPrefix }}_reverse({{ $typeName }} *{{ $typeArg }}) {
+	uint64_t i = {{ $typeArg }}->len - 1;
     uint64_t j = 0;
 
     while(i > j) {
-        {{ .Name }} temp = s->items[i];
-        s->items[i] = s->items[j];
-        s->items[j] = temp;
+        {{ .Name }} temp = {{ $typeArg }}->items[i];
+        {{ $typeArg }}->items[i] = {{ $typeArg }}->items[j];
+        {{ $typeArg }}->items[j] = temp;
         i--;
         j++;
     }
 }
 
 int
-{{ $name }}_slice_compare(const {{ $name }}_slice_t *s1, const {{ $name }}_slice_t *s2)
+{{ $funcPrefix }}_compare(const {{ $typeName }} *{{ $typeArg }}1, const {{ $typeName }} *{{ $typeArg }}2)
 {
-	if (s1->len != s2->len) {
+	if ({{ $typeArg }}1->len != {{ $typeArg }}2->len) {
 		return 0;
 	}
 
-	for (uint64_t i = 0; i < s1->len; i++) {
+	for (uint64_t i = 0; i < {{ $typeArg }}1->len; i++) {
 {{- if .Pointer }}
-    	if (*s1->items[i] != *s2->items[i]) {
+    	if (*{{ $typeArg }}1->items[i] != *{{ $typeArg }}2->items[i]) {
 {{- else }}
-		if (s1->items[i] != s2->items[i]) {
+		if ({{ $typeArg }}1->items[i] != {{ $typeArg }}2->items[i]) {
 {{- end }}
 			return 0;
 		}
@@ -211,35 +241,35 @@ int
 }
 
 int
-{{ $name }}_slice_copy(const {{ $name }}_slice_t *s1, {{ $name }}_slice_t *s2, int overwrite)
+{{ $funcPrefix }}_copy(const {{ $typeName }} *{{ $typeArg }}1, {{ $typeName }} *{{ $typeArg }}2, int overwrite)
 {
 	if (overwrite) {
-		if (s1->len != s2->len) {
-			s2->cap = s1->cap;
-			s2->items = realloc(s2->items, sizeof({{ .Name }}) * s1->cap);
+		if ({{ $typeArg }}1->len != {{ $typeArg }}2->len) {
+			{{ $typeArg }}2->cap = {{ $typeArg }}1->cap;
+			{{ $typeArg }}2->items = realloc({{ $typeArg }}2->items, sizeof({{ .Name }}) * {{ $typeArg }}1->cap);
 		}
 	}
 
-	for (uint64_t i = 0; i < s1->len; i++) {
-		s2->items[i] = s1->items[i];
-		s2->len++;
+	for (uint64_t i = 0; i < {{ $typeArg }}1->len; i++) {
+		{{ $typeArg }}2->items[i] = {{ $typeArg }}1->items[i];
+		{{ $typeArg }}2->len++;
 	}
 
-	return s2->len;
+	return {{ $typeArg }}2->len;
 }
 
 int
-{{ $name }}_slice_contains(const {{ $name }}_slice_t *s, {{ .Name }} {{ $arg }})
+{{ $funcPrefix }}_contains(const {{ $typeName }} *{{ $typeArg }}, {{ .Name }} {{ $arg }})
 {
-	if (s->len == 0) {
+	if ({{ $typeArg }}->len == 0) {
 		return 0;
 	}
 
-	for (uint64_t i = 0; i < s->len; i++) {
+	for (uint64_t i = 0; i < {{ $typeArg }}->len; i++) {
 {{- if .Pointer }}
-    	if (*s->items[i] == val) {
+    	if (*{{ $typeArg }}->items[i] == val) {
 {{- else }}
-		if (s->items[i] == val) {
+		if ({{ $typeArg }}->items[i] == val) {
 {{- end }}
 			return 1;
 		}
@@ -249,28 +279,28 @@ int
 }
 
 int
-{{ $name }}_slice_delete({{ $name }}_slice_t *s, const uint64_t idx)
+{{ $funcPrefix }}_delete({{ $typeName }} *{{ $typeArg }}, const uint64_t idx)
 {
-	if (s->len == 0) {
+	if ({{ $typeArg }}->len == 0) {
 		return 1;
 	}
 
-	for (uint64_t i = idx; i < s->len-1; i++) {
-		s->items[i] = s->items[i + 1];
+	for (uint64_t i = idx; i < {{ $typeArg }}->len-1; i++) {
+		{{ $typeArg }}->items[i] = {{ $typeArg }}->items[i + 1];
 	}
-	s->len-1;
+	{{ $typeArg }}->len-1;
 
 	return 0;
 }
 
 int
-{{ $name }}_slice_replace({{ $name }}_slice_t *s, const uint64_t idx, const {{ .Name }} {{ $arg }})
+{{ $funcPrefix }}_replace({{ $typeName }} *{{ $typeArg }}, const uint64_t idx, const {{ .Name }} {{ $arg }})
 {
-	if (s->len == 0 || idx > s->len) {
+	if ({{ $typeArg }}->len == 0 || idx > {{ $typeArg }}->len) {
 		return 1;
 	}
 
-	s->items[idx] = {{ $arg }}
+	{{ $typeArg }}->items[idx] = {{ $arg }};
 
 	return 0;
 }

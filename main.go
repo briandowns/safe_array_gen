@@ -46,6 +46,7 @@ var (
 	typesFlag   string
 	pointerFlag bool
 	appendFlag  string
+	nameFlag    string
 )
 
 const usage = `version: %s
@@ -59,13 +60,15 @@ Options:
     -p            use a pointer for the given type(s)
     -a            only generate implementation code and append 
                   to the given file
+    -n            custom name for the given type
 `
 
 // data used to be passed to the template engine.
 type data struct {
-	Name    string
-	Pointer bool
-	Append  bool
+	Name       string
+	CustomName string
+	Pointer    bool
+	Append     bool
 }
 
 func main() {
@@ -84,6 +87,7 @@ func main() {
 	flag.StringVar(&typesFlag, "t", "", "")
 	flag.BoolVar(&pointerFlag, "p", false, "")
 	flag.StringVar(&appendFlag, "a", "", "")
+	flag.StringVar(&nameFlag, "n", "", "")
 	flag.Parse()
 
 	if vers {
@@ -92,8 +96,15 @@ func main() {
 	}
 
 	types := strings.Split(typesFlag, ",")
-	if len(types) < 1 {
-		fmt.Fprint(os.Stderr, "")
+	typeCount := len(types)
+
+	if typeCount == 1 && types[0] == "" {
+		fmt.Fprintln(os.Stderr, "error: type(s) need to be provided")
+		os.Exit(1)
+	}
+
+	if nameFlag != "" && typeCount > 1 {
+		fmt.Fprintln(os.Stderr, "error: only 1 type supported when using custom name")
 		os.Exit(1)
 	}
 
@@ -106,6 +117,9 @@ func main() {
 		},
 		"Strip": func(s, ss string) string {
 			return strings.Replace(s, ss, "", 1)
+		},
+		"Concat": func(str1, str2 string) string {
+			return str1 + str2
 		},
 	}
 
@@ -131,12 +145,17 @@ func main() {
 			os.Exit(1)
 		}
 
+		d := data{
+			Pointer: pointerFlag,
+			Append:  true,
+		}
+
+		if nameFlag != "" {
+			d.CustomName = nameFlag
+		}
+
 		for _, t := range types {
-			d := data{
-				Name:    t,
-				Pointer: pointerFlag,
-				Append:  true,
-			}
+			d.Name = t
 
 			if err := tmp1.Execute(f, &d); err != nil {
 				fmt.Fprint(os.Stderr, err)
@@ -147,6 +166,15 @@ func main() {
 		os.Exit(0)
 	}
 
+	d := data{
+		Pointer: pointerFlag,
+		Append:  false,
+	}
+
+	if nameFlag != "" {
+		d.CustomName = nameFlag
+	}
+
 	for _, t := range types {
 		f, err := os.Create(t + "_slice.c")
 		if err != nil {
@@ -155,11 +183,7 @@ func main() {
 		}
 		defer f.Close()
 
-		d := data{
-			Name:    t,
-			Pointer: pointerFlag,
-			Append:  false,
-		}
+		d.Name = t
 
 		if err := tmp1.Execute(f, &d); err != nil {
 			fmt.Fprint(os.Stderr, err)
@@ -182,10 +206,7 @@ func main() {
 		}
 		defer f.Close()
 
-		d := data{
-			Name:    t,
-			Pointer: pointerFlag,
-		}
+		d.Name = t
 
 		if err := tmp2.Execute(f, &d); err != nil {
 			fmt.Fprint(os.Stderr, err)
