@@ -17,7 +17,7 @@ sag makes generating safe arrays in easy. Safe arrays are simply arrays but wrap
 
 ## Usage
 
-sag is CLI driven and takes flags and arguments as input.
+sag is CLI driven and takes flags and arguments as input. It can be used for very simple use cases as demonstrated immediately below and more specific ones where custom names are required.
 
 E.g.
 
@@ -25,6 +25,12 @@ Generate the "array" and associated functions.
 
 ```sh
 sag -t uint8_t
+```
+
+Generate "array" type with a custom name and associated functions.
+
+```sh
+sag -t char -n grades
 ```
 
 ## Contributing
