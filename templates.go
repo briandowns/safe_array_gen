@@ -155,14 +155,14 @@ typedef struct {
     {{ .Name }} {{ $items }};
     uint64_t len;
     uint64_t cap;
-} {{ $name }}_slice_t;
+} {{ $typeName }};
 {{- end -}}
 {{- $name := Strip .Name "_t" }}
 
 {{ $typeName }}*
 {{ $funcPrefix }}_new(const uint64_t cap)
 {
-    {{ $name }}_slice_t *s = calloc(1, sizeof({{ $name }}_slice_t));
+    {{ $typeName }} *s = calloc(1, sizeof({{ $name }}_slice_t));
     s->items = calloc(1, sizeof({{ .Name }}) * cap);
     s->len = 0;
     s->cap = cap;
@@ -201,7 +201,7 @@ void
 }
 
 void
-{{ $name }}_slice_reverse({{ $name }}_slice_t *s) {
+{{ $funcPrefix }}_reverse({{ $name }}_slice_t *s) {
 	uint64_t i = s->len - 1;
     uint64_t j = 0;
 
@@ -215,7 +215,7 @@ void
 }
 
 int
-{{ $name }}_slice_compare(const {{ $name }}_slice_t *s1, const {{ $name }}_slice_t *s2)
+{{ $funcPrefix }}_compare(const {{ $typeName }} *s1, const {{ $typeName }} *s2)
 {
 	if (s1->len != s2->len) {
 		return 0;
@@ -235,7 +235,7 @@ int
 }
 
 int
-{{ $name }}_slice_copy(const {{ $name }}_slice_t *s1, {{ $name }}_slice_t *s2, int overwrite)
+{{ $funcPrefix }}_copy(const {{ $typeName }} *s1, {{ $typeName }} *s2, int overwrite)
 {
 	if (overwrite) {
 		if (s1->len != s2->len) {
@@ -253,7 +253,7 @@ int
 }
 
 int
-{{ $name }}_slice_contains(const {{ $name }}_slice_t *s, {{ .Name }} {{ $arg }})
+{{ $funcPrefix }}_contains(const {{ $typeName }} *s, {{ .Name }} {{ $arg }})
 {
 	if (s->len == 0) {
 		return 0;
@@ -273,7 +273,7 @@ int
 }
 
 int
-{{ $name }}_slice_delete({{ $name }}_slice_t *s, const uint64_t idx)
+{{ $funcPrefix }}_delete({{ $typeName }} *s, const uint64_t idx)
 {
 	if (s->len == 0) {
 		return 1;
@@ -288,13 +288,13 @@ int
 }
 
 int
-{{ $name }}_slice_replace({{ $name }}_slice_t *s, const uint64_t idx, const {{ .Name }} {{ $arg }})
+{{ $funcPrefix }}_replace({{ $typeName }} *s, const uint64_t idx, const {{ .Name }} {{ $arg }})
 {
 	if (s->len == 0 || idx > s->len) {
 		return 1;
 	}
 
-	s->items[idx] = {{ $arg }}
+	s->items[idx] = {{ $arg }};
 
 	return 0;
 }
