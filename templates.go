@@ -1,16 +1,24 @@
 package main
 
-const sliceHeaderTmpl = `/**
- * This is generated code from safe_array_gen. Please do not edit unless
- * sure of what you are doing.
- */
+const sliceHeaderTmpl = `// This is generated code from safe_array_gen. Please do not edit unless
+// sure of what you are doing.
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+{{- $name := Strip .Name "_t" -}}
+{{- $headerName := ToUpper $name }}
+
+#ifndef __{{ $headerName }}_H
+#define __{{ $headerName }}_H
 
 {{ if Contains .Name "bool" -}}
 #include <stdbool.h>
 {{- end -}}
+#include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-{{ $name := Strip .Name "_t" }}
+
 {{- $arg := "" -}}
 {{- $items := "" -}}
 {{- if .Pointer -}}
@@ -30,17 +38,17 @@ const sliceHeaderTmpl = `/**
 {{ $typeArg = printf "%c" (index $typeName 0) -}}
 typedef struct {
     {{ .Name }} {{ $items }};
-    uint64_t len;
-    uint64_t cap;
+    size_t len;
+    size_t cap;
 } {{ $typeName }};
 {{- else -}}
 {{- $typeName = printf "%s_slice_t" $name }}
 {{- $funcPrefix = printf "%s_slice" $name }}
-{{- $typeArg = "s" -}}
+{{ $typeArg = "s" }}
 typedef struct {
     {{ .Name }} {{ $items }};
-    uint64_t len;
-    uint64_t cap;
+    size_t len;
+    size_t cap;
 } {{ $typeName }};
 {{- end }}
 
@@ -50,7 +58,7 @@ typedef struct {
  * is responsible for freeing this memory.
  */
 {{ $typeName }}*
-{{ $funcPrefix }}_new(const uint64_t cap);
+{{ $funcPrefix }}_new(const size_t cap);
 
 /**
  * {{ $funcPrefix }}_free frees the memory used by the given pointer. 
@@ -67,7 +75,7 @@ void
 {{- else }}
 {{ .Name }}
 {{- end }}
-{{ $funcPrefix }}_get({{ $typeName }} *s, uint64_t idx);
+{{ $funcPrefix }}_get({{ $typeName }} *s, size_t idx);
 
 /**
  * {{ $funcPrefix }}_append attempts to append the data to the given array.
@@ -108,21 +116,23 @@ int
  * {{ $funcPrefix }}_delete removes the item at the given index.
  */
 int
-{{ $funcPrefix }}_delete({{ $typeName }} *{{ $typeArg }}, const uint64_t idx);
+{{ $funcPrefix }}_delete({{ $typeName }} *{{ $typeArg }}, const size_t idx);
 
 /**
  * {{ $funcPrefix }}_replace replaces the value at the given element with the 
  * given new value.
  */
 int
-{{ $funcPrefix }}_replace({{ $typeName }} *{{ $typeArg }}, const uint64_t idx, const {{ .Name }} {{ $arg }});
+{{ $funcPrefix }}_replace({{ $typeName }} *{{ $typeArg }}, const size_t idx, const {{ .Name }} {{ $arg }});
+
+#endif /** end __{{ $headerName }}_H */
+#ifdef __cplusplus
+}
+#endif
 `
 
-const sliceImplementationTmpl = `
-/**
- * This is generated code from safe_array_gen. Please do not edit unless
- * sure of what you are doing.
- */
+const sliceImplementationTmpl = `// This is generated code from safe_array_gen. Please do not edit unless
+// sure of what you are doing.
 
 {{- $name := Strip .Name "_t" }}
 {{- $arg := "" }}
@@ -151,6 +161,7 @@ const sliceImplementationTmpl = `
 {{- if not .Append }}
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -159,14 +170,14 @@ const sliceImplementationTmpl = `
 
 typedef struct {
     {{ .Name }} {{ $items }};
-    uint64_t len;
-    uint64_t cap;
+    size_t len;
+    size_t cap;
 } {{ $typeName }};
 {{- end -}}
 {{- $name := Strip .Name "_t" }}
 
 {{ $typeName }}*
-{{ $funcPrefix }}_new(const uint64_t cap)
+{{ $funcPrefix }}_new(const size_t cap)
 {
     {{ $typeName }} *{{ $typeArg }} = calloc(1, sizeof({{ $typeName }}));
     {{ $typeArg }}->items = calloc(1, sizeof({{ .Name }}) * cap);
@@ -178,8 +189,10 @@ typedef struct {
 
 void
 {{ $funcPrefix }}_free({{ $typeName }} *{{ $typeArg }}) {
-    free({{ $typeArg }}->items);
-    free({{ $typeArg }});
+	if ({{ $typeArg }} != NULL && {{ $typeArg }}->items != NULL) {
+		free({{ $typeArg }}->items);
+    	free({{ $typeArg }});
+	} 
 }
 
 {{ if .Pointer -}}
@@ -187,7 +200,7 @@ void
 {{- else }}
 {{ .Name }}
 {{- end }}
-{{ $funcPrefix }}_get({{ $typeName }} *{{ $typeArg }}, uint64_t idx)
+{{ $funcPrefix }}_get({{ $typeName }} *{{ $typeArg }}, size_t idx)
 {
     if (idx >= 0 && idx < {{ $typeArg }}->len) {
         return {{ $typeArg }}->items[idx];
@@ -227,7 +240,7 @@ int
 		return 0;
 	}
 
-	for (uint64_t i = 0; i < {{ $typeArg }}1->len; i++) {
+	for (size_t i = 0; i < {{ $typeArg }}1->len; i++) {
 {{- if .Pointer }}
     	if (*{{ $typeArg }}1->items[i] != *{{ $typeArg }}2->items[i]) {
 {{- else }}
@@ -250,7 +263,7 @@ int
 		}
 	}
 
-	for (uint64_t i = 0; i < {{ $typeArg }}1->len; i++) {
+	for (size_t i = 0; i < {{ $typeArg }}1->len; i++) {
 		{{ $typeArg }}2->items[i] = {{ $typeArg }}1->items[i];
 		{{ $typeArg }}2->len++;
 	}
@@ -265,7 +278,7 @@ int
 		return 0;
 	}
 
-	for (uint64_t i = 0; i < {{ $typeArg }}->len; i++) {
+	for (size_t i = 0; i < {{ $typeArg }}->len; i++) {
 {{- if .Pointer }}
     	if (*{{ $typeArg }}->items[i] == val) {
 {{- else }}
@@ -279,13 +292,13 @@ int
 }
 
 int
-{{ $funcPrefix }}_delete({{ $typeName }} *{{ $typeArg }}, const uint64_t idx)
+{{ $funcPrefix }}_delete({{ $typeName }} *{{ $typeArg }}, const size_t idx)
 {
 	if ({{ $typeArg }}->len == 0) {
 		return 1;
 	}
 
-	for (uint64_t i = idx; i < {{ $typeArg }}->len-1; i++) {
+	for (size_t i = idx; i < {{ $typeArg }}->len-1; i++) {
 		{{ $typeArg }}->items[i] = {{ $typeArg }}->items[i + 1];
 	}
 	{{ $typeArg }}->len-1;
@@ -294,7 +307,7 @@ int
 }
 
 int
-{{ $funcPrefix }}_replace({{ $typeName }} *{{ $typeArg }}, const uint64_t idx, const {{ .Name }} {{ $arg }})
+{{ $funcPrefix }}_replace({{ $typeName }} *{{ $typeArg }}, const size_t idx, const {{ .Name }} {{ $arg }})
 {
 	if ({{ $typeArg }}->len == 0 || idx > {{ $typeArg }}->len) {
 		return 1;
