@@ -1,7 +1,7 @@
 GO = go
 
 BINDIR := bin
-BINARY := sag
+BINARY := safe_array_gen
 PREFIX := /usr/local
 
 VERSION = v0.1.0

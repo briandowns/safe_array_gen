@@ -33,11 +33,14 @@ extern "C" {
 {{- if .CustomName -}}
 {{- $typeName = .CustomName }}
 {{- $funcPrefix = $typeName }}
+typedef bool (*compare_func_t)(const {{ .Name }} a, const {{ .Name }} b, void *user_data);
+
 {{ $typeArg = printf "%c" (index $typeName 0) -}}
 typedef struct {
     {{ .Name }} {{ $items }};
     size_t len;
     size_t cap;
+	compare_func_t compare;
 } {{ $typeName }};
 {{- else -}}
 {{- $typeName = printf "%s_slice_t" $name }}
@@ -47,6 +50,7 @@ typedef struct {
     {{ .Name }} {{ $items }};
     size_t len;
     size_t cap;
+	bool (*compare)(const .Name a, const .Name b, void *user_data);
 } {{ $typeName }};
 {{- end }}
 
@@ -92,7 +96,7 @@ void
  * and returns true if they are the same and false if they are not.
  */
 bool
-{{ $funcPrefix }}_compare(const {{ $typeName }} *{{ $typeArg }}1, const {{ $typeName }} *{{ $typeArg }}2);
+{{ $funcPrefix }}_compare(const {{ $typeName }} *{{ $typeArg }}1, const {{ $typeName }} *{{ $typeArg }}2, void *user_data);
 
 /**
  * {{ $funcPrefix }}_copy takes 2 slices. The first is copied into the second
@@ -123,6 +127,14 @@ int
  */
 int
 {{ $funcPrefix }}_replace({{ $typeName }} *{{ $typeArg }}, const size_t idx, const {{ .Name }} {{ $arg }});
+
+/**
+ * {{ $funcPrefix }}_foreach iterates through the slice and runs the user provided
+ * function on each item. Additional user provided data can be provided 
+ * using the user_data argument.
+ */
+int
+{{ $funcPrefix }}_foreach({{ $typeName }} *{{ $typeArg }}, iter_func_t ift, void *user_data);
 
 #endif /** end __{{ $headerName }}_H */
 #ifdef __cplusplus
@@ -235,10 +247,20 @@ void
 }
 
 bool
-{{ $funcPrefix }}_compare(const {{ $typeName }} *{{ $typeArg }}1, const {{ $typeName }} *{{ $typeArg }}2)
+{{ $funcPrefix }}_compare(const {{ $typeName }} *{{ $typeArg }}1, const {{ $typeName }} *{{ $typeArg }}2, void *user_data)
 {
 	if ({{ $typeArg }}1->len != {{ $typeArg }}2->len) {
 		return false;
+	}
+
+	if ({{ $typeArg }}1->compare != NULL) {
+		for (size_t i = 0; i < s1->len; i++) {
+			if (!{{ $typeArg }}1->compare(s1->items[i], {{ $typeArg }}2->items[i], user_data)) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	for (size_t i = 0; i < {{ $typeArg }}1->len; i++) {
@@ -315,6 +337,48 @@ int
 	}
 
 	{{ $typeArg }}->items[idx] = {{ $arg }};
+
+	return 0;
+}
+
+{{ if .Pointer -}}
+{{ .Name }}*
+{{- else }}
+{{ .Name }}
+{{- end }}
+{{ $funcPrefix }}_first({{ $typeName }} *{{ $typeArg }})
+{
+	if ({{ $typeArg }}->len == 0) {
+		return 0;
+	}
+
+	return {{ $typeArg }}->items[0];
+}
+
+{{ if .Pointer -}}
+{{ .Name }}*
+{{- else }}
+{{ .Name }}
+{{- end }}
+{{ $funcPrefix }}_last({{ $typeName }} *{{ $typeArg }})
+{
+	if ({{ $typeArg }}->len == 0) {
+		return 0;
+	}
+
+	return {{ $typeArg }}->items[{{ $typeArg }}->len-1]; 
+}
+
+int
+{{ $funcPrefix }}_foreach({{ $typeName }} *{{ $typeArg }}, iter_func_t ift, void *user_data)
+{
+	if ({{ $typeArg }}->len == 0) {
+		return 0;
+	}
+	
+	for (size_t i = 0; i < {{ $typeArg }}->len; i++) {
+		ift({{ $typeArg }}->items[i], user_data);
+	}
 
 	return 0;
 }

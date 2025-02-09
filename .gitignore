@@ -1,5 +1,5 @@
-*.c
-*.h
+./*.c
+./*.h
 *.o
 *.so
 *.dynlib
@@ -11,4 +11,4 @@ tests/tests
 example
 out
 .vscode
-all
+tests/all

@@ -1,4 +1,4 @@
-# Safe Array Generator (sag)
+# Safe Array Generator
 
 sag makes generating safe arrays in easy. Safe arrays are simply arrays but wrapped in functions that perform basic bounds checking. These functions are kept simple such that whatever compiler you're using can optimize them away and take advantage of CPU branch prediction. Arrays will grow dynamically when necessary.
 
@@ -14,6 +14,9 @@ sag makes generating safe arrays in easy. Safe arrays are simply arrays but wrap
 * contains
 * delete
 * replace
+* first
+* last
+* foreach
 
 ## Usage
 
