@@ -1,6 +1,6 @@
 # Safe Array Generator
 
-sag makes generating safe arrays in easy. Safe arrays are simply arrays but wrapped in functions that perform basic bounds checking. These functions are kept simple such that whatever compiler you're using can optimize them away and take advantage of CPU branch prediction. Arrays will grow dynamically when necessary.
+Safe Array Generator makes generating safe arrays in C easy. Safe arrays are simply arrays but wrapped in functions that perform basic bounds checking. These functions are kept simple such that whatever compiler you're using can optimize them away and take advantage of CPU branch prediction. Arrays will grow dynamically when necessary.
 
 ## Functions Generated
 
@@ -20,7 +20,7 @@ sag makes generating safe arrays in easy. Safe arrays are simply arrays but wrap
 
 ## Usage
 
-sag is CLI driven and takes flags and arguments as input. It can be used for very simple use cases as demonstrated immediately below and more specific ones where custom names are required.
+Safe Array Generator is CLI driven and takes flags and arguments as input. It can be used for very simple use cases as demonstrated immediately below and more specific ones where custom names are required. User defined functions can be given to the compare and foreach functions which can be useful when uses slices of custom types. 
 
 E.g.
 
