@@ -1,0 +1,62 @@
+#include <assert.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <string.h>
+
+#include "uint8_t_slice.h"
+
+typedef struct {
+    char name[16];
+    unsigned short age; 
+    uint8_slice_t *grades;
+} person_t;
+
+int
+main(int argc, char **argv)
+{
+    printf("Running tests...\n");
+    person_t *p = (person_t*)malloc(sizeof(person_t));
+    strcpy(p->name, "Brian");
+    p->age = 44;
+    p->grades = uint8_slice_new(4);
+    assert(p->grades->cap == 4);
+    assert(p->grades->len == 0);
+
+    uint8_slice_append(p->grades, 'a');
+    uint8_slice_append(p->grades, 'a');
+    uint8_slice_append(p->grades, 'b');
+    uint8_slice_append(p->grades, 'a');
+    uint8_slice_append(p->grades, 'a');
+    uint8_slice_append(p->grades, 'a');
+    uint8_slice_append(p->grades, 'a');
+    uint8_slice_append(p->grades, 'a');
+    assert(p->grades->len == 8);
+    assert(p->grades->cap == 8);
+
+    assert(uint8_slice_contains(p->grades, 'a'));
+    assert(!uint8_slice_contains(p->grades, 'f'));
+    for (int i = 0; i < 8; i++) {
+        printf("%d - %c\n", i, p->grades->items[i]);
+    }
+    uint8_slice_delete(p->grades, 3);
+    printf("%lu\n", p->grades->len);
+    assert(p->grades->len == 7);
+
+    assert(uint8_slice_get(p->grades, 2) == 'b');
+
+    uint8_slice_replace(p->grades, 5, 'b');
+    printf("\n\n");
+    for (int i = 0; i < 8; i++) {
+        printf("%d - %c\n", i, p->grades->items[i]);
+    }
+    printf("xxx - %c\n", uint8_slice_get(p->grades, 6));
+    //assert(uint8_slice_get(p->grades, 5) == 'c');
+
+    // uint8_slice_free(p->grades);
+    // free(p);
+
+    printf("Tests ran successfully!...\n");
+
+    return 0;
+}

@@ -163,6 +163,7 @@ const sliceImplementationTmpl = `// This is generated code from safe_array_gen. 
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "{{ .Name }}_slice.h"
 {{- else }}
@@ -215,6 +216,7 @@ void
         {{ $typeArg }}->cap *= 2;
         {{ $typeArg }}->items = realloc({{ $typeArg }}->items, sizeof({{ .Name }}) * {{ $typeArg }}->cap);
     }
+
     {{ $typeArg }}->items[{{ $typeArg }}->len++] = val;
 }
 
@@ -293,14 +295,14 @@ bool
 int
 {{ $funcPrefix }}_delete({{ $typeName }} *{{ $typeArg }}, const size_t idx)
 {
-	if ({{ $typeArg }}->len == 0) {
-		return 1;
+	if ({{ $typeArg }}->len == 0 || idx > {{ $typeArg }}->len) {
+		return -1;
 	}
 
-	for (size_t i = idx; i < {{ $typeArg }}->len-1; i++) {
+	for (size_t i = idx; i < {{ $typeArg }}->len; i++) {
 		{{ $typeArg }}->items[i] = {{ $typeArg }}->items[i + 1];
 	}
-	{{ $typeArg }}->len-1;
+	{{ $typeArg }}->len--;
 
 	return {{ $typeArg }}->len;
 }
