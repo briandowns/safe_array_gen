@@ -12,9 +12,7 @@ extern "C" {
 #ifndef __{{ $headerName }}_H
 #define __{{ $headerName }}_H
 
-{{ if Contains .Name "bool" -}}
 #include <stdbool.h>
-{{- end -}}
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -91,9 +89,9 @@ void
 
 /**
  * {{ $funcPrefix }}_compare takes 2 slices, compares them element by element
- * and returns 0 if they are not the same and 1 if they are.
+ * and returns true if they are the same and false if they are not.
  */
-int
+bool
 {{ $funcPrefix }}_compare(const {{ $typeName }} *{{ $typeArg }}1, const {{ $typeName }} *{{ $typeArg }}2);
 
 /**
@@ -109,18 +107,19 @@ int
 /**
  * {{ $funcPrefix }}_contains checks to see if the given value is in the slice.
  */
-int
+bool
 {{ $funcPrefix }}_contains(const {{ $typeName }} *{{ $typeArg }}, {{ .Name }} {{ $arg }});
 
 /**
- * {{ $funcPrefix }}_delete removes the item at the given index.
+ * {{ $funcPrefix }}_delete removes the item at the given index and returns the
+ * new length.
  */
 int
 {{ $funcPrefix }}_delete({{ $typeName }} *{{ $typeArg }}, const size_t idx);
 
 /**
- * {{ $funcPrefix }}_replace replaces the value at the given element with the 
- * given new value.
+ * {{ $funcPrefix }}_replace replaces the value at the given index with the new
+ * value.
  */
 int
 {{ $funcPrefix }}_replace({{ $typeName }} *{{ $typeArg }}, const size_t idx, const {{ .Name }} {{ $arg }});
@@ -233,11 +232,11 @@ void
     }
 }
 
-int
+bool
 {{ $funcPrefix }}_compare(const {{ $typeName }} *{{ $typeArg }}1, const {{ $typeName }} *{{ $typeArg }}2)
 {
 	if ({{ $typeArg }}1->len != {{ $typeArg }}2->len) {
-		return 0;
+		return false;
 	}
 
 	for (size_t i = 0; i < {{ $typeArg }}1->len; i++) {
@@ -246,11 +245,11 @@ int
 {{- else }}
 		if ({{ $typeArg }}1->items[i] != {{ $typeArg }}2->items[i]) {
 {{- end }}
-			return 0;
+			return false;
 		}
 	}
 
-	return 1;
+	return true;
 }
 
 int
@@ -271,11 +270,11 @@ int
 	return {{ $typeArg }}2->len;
 }
 
-int
+bool
 {{ $funcPrefix }}_contains(const {{ $typeName }} *{{ $typeArg }}, {{ .Name }} {{ $arg }})
 {
 	if ({{ $typeArg }}->len == 0) {
-		return 0;
+		return false;
 	}
 
 	for (size_t i = 0; i < {{ $typeArg }}->len; i++) {
@@ -284,11 +283,11 @@ int
 {{- else }}
 		if ({{ $typeArg }}->items[i] == val) {
 {{- end }}
-			return 1;
+			return true;
 		}
 	}
 
-	return 0;
+	return false;
 }
 
 int
@@ -303,14 +302,14 @@ int
 	}
 	{{ $typeArg }}->len-1;
 
-	return 0;
+	return {{ $typeArg }}->len;
 }
 
 int
 {{ $funcPrefix }}_replace({{ $typeName }} *{{ $typeArg }}, const size_t idx, const {{ .Name }} {{ $arg }})
 {
 	if ({{ $typeArg }}->len == 0 || idx > {{ $typeArg }}->len) {
-		return 1;
+		return -1;
 	}
 
 	{{ $typeArg }}->items[idx] = {{ $arg }};
