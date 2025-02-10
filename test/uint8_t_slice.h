@@ -14,13 +14,13 @@ extern "C" {
 #include <stdlib.h>
 
 typedef bool (*compare_func_t)(const uint8_t a, const uint8_t b, void *user_data);
-typedef void (*iter_func_t)(uint8_t item, void *user_data);
+typedef void (*iter_func_t)(const uint8_t item, void *user_data);
 
 typedef struct {
     uint8_t *items;
     size_t len;
     size_t cap;
-    compare_func_t compare;
+	compare_func_t compare; 
 } uint8_slice_t;
 
 /**
@@ -100,6 +100,13 @@ uint8_slice_replace(uint8_slice_t *s, const size_t idx, const uint8_t val);
  */
 int
 uint8_slice_foreach(uint8_slice_t *s, iter_func_t ift, void *user_data);
+
+/**
+ * uint8_slice_sort uses thet Quick Sort algorithm to sort the contents of the
+ * slice if it is a standard type.
+ */
+void
+uint8_slice_sort(uint8_slice_t *s, size_t low, size_t high);
 
 #endif /** end __UINT8_H */
 #ifdef __cplusplus

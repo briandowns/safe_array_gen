@@ -53,6 +53,8 @@ main(int argc, char **argv)
 
     uint8_slice_foreach(p->grades, print_item, NULL);
 
+    uint8_slice_sort(p->grades, 0, p->grades->len-1);
+
     uint8_slice_free(p->grades);
     free(p);
 

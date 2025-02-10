@@ -30,7 +30,7 @@ Generate the "array" and associated functions.
 sag -t uint8_t
 ```
 
-Generate "array" type with a custom name and associated functions.
+Generate "array" type with a custom name.
 
 ```sh
 sag -t char -n grades

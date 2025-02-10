@@ -27,14 +27,15 @@ extern "C" {
 {{- $items = "*items" -}}
 {{ end }}
 
+typedef bool (*compare_func_t)(const {{ .Name }} a, const {{ .Name }} b, void *user_data);
+typedef void (*iter_func_t)(const {{ .Name }} item, void *user_data);
+
 {{- $typeName := "" }}
 {{- $funcPrefix := "" }}
 {{- $typeArg := "" -}}
 {{- if .CustomName -}}
 {{- $typeName = .CustomName }}
 {{- $funcPrefix = $typeName }}
-typedef bool (*compare_func_t)(const {{ .Name }} a, const {{ .Name }} b, void *user_data);
-
 {{ $typeArg = printf "%c" (index $typeName 0) -}}
 typedef struct {
     {{ .Name }} {{ $items }};
@@ -50,7 +51,7 @@ typedef struct {
     {{ .Name }} {{ $items }};
     size_t len;
     size_t cap;
-	bool (*compare)(const .Name a, const .Name b, void *user_data);
+	compare_func_t compare;
 } {{ $typeName }};
 {{- end }}
 
@@ -135,6 +136,13 @@ int
  */
 int
 {{ $funcPrefix }}_foreach({{ $typeName }} *{{ $typeArg }}, iter_func_t ift, void *user_data);
+
+/**
+ * {{ $funcPrefix }}_sort uses thet Quick Sort algorithm to sort the contents of the
+ * slice if it is a standard type.
+ */
+int
+{{ $funcPrefix }}_sort({{ $typeName }} *{{ $typeArg }}, size_t low, size_t high);
 
 #endif /** end __{{ $headerName }}_H */
 #ifdef __cplusplus
@@ -379,6 +387,48 @@ int
 	for (size_t i = 0; i < {{ $typeArg }}->len; i++) {
 		ift({{ $typeArg }}->items[i], user_data);
 	}
+
+	return 0;
+}
+
+static void
+swap(uint8_t *a, uint8_t *b)
+{
+    uint8_t tmp = *a;
+    *a = *b;
+    *b = tmp;
+}
+
+static size_t
+partition({{ $typeName }} *{{ $typeArg }}, size_t low, size_t high)
+{
+    uint8_t pivot = {{ $typeArg }}->items[high];
+    size_t i = (low-1);
+
+    for (size_t j = low; j <= high-1; j++) {
+        if ({{ $typeArg }}->items[j] <= pivot) {
+            i++;
+            swap(&{{ $typeArg }}->items[i], &{{ $typeArg }}->items[j]);
+        }
+    }
+    swap(&{{ $typeArg }}->items[i+1], &{{ $typeArg }}->items[high]);
+
+    return (i+1);
+}
+
+int
+{{ $funcPrefix }}_sort({{ $typeName }} *{{ $typeArg }}, size_t low, size_t high)
+{
+	if ({{ $typeArg }}->len == 0) {
+		return 0;
+	}
+
+    if (low < high) {
+        size_t pi = partition({{ $typeArg }}->items, low, high);
+
+        {{ $funcPrefix }}_sort({{ $typeArg }}->items, low, pi-1);
+        {{ $funcPrefix }}_sort({{ $typeArg }}->items, pi+1, high);
+    }
 
 	return 0;
 }

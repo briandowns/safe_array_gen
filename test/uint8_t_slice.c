@@ -5,7 +5,6 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 
 #include "uint8_t_slice.h"
@@ -23,16 +22,10 @@ uint8_slice_new(const size_t cap)
 
 void
 uint8_slice_free(uint8_slice_t *s) {
-	if (s != NULL && s->items != NULL) {
+	if (s != NULL && s->items != NULL) { 
 		free(s->items);
     	free(s);
 	} 
-}
-
-void
-uint8_slice_set_compare_func()
-{
-
 }
 
 
@@ -158,6 +151,7 @@ uint8_slice_replace(uint8_slice_t *s, const size_t idx, const uint8_t val)
 	return 0;
 }
 
+
 uint8_t
 uint8_slice_first(uint8_slice_t *s)
 {
@@ -167,6 +161,7 @@ uint8_slice_first(uint8_slice_t *s)
 
 	return s->items[0];
 }
+
 
 uint8_t
 uint8_slice_last(uint8_slice_t *s)
@@ -188,6 +183,48 @@ uint8_slice_foreach(uint8_slice_t *s, iter_func_t ift, void *user_data)
 	for (size_t i = 0; i < s->len; i++) {
 		ift(s->items[i], user_data);
 	}
+
+	return 0;
+}
+
+static void
+swap(uint8_t *a, uint8_t *b)
+{
+    uint8_t tmp = *a;
+    *a = *b;
+    *b = tmp;
+}
+
+static size_t
+partition(uint8_slice_t *s, size_t low, size_t high)
+{
+    uint8_t pivot = s->items[high];
+    size_t i = (low-1);
+
+    for (size_t j = low; j <= high - 1; j++) {
+        if (s->items[j] <= pivot) {
+            i++;
+            swap(&s->items[i], &s->items[j]);
+        }
+    }
+    swap(&s->items[i + 1], &s->items[high]);
+
+    return (i+1);
+}
+
+int
+uint8_slice_sort(uint8_slice_t *s, size_t low, size_t high)
+{
+	if (s->len == 0) {
+		return 0;
+	}
+
+    if (low < high) {
+        size_t pi = partition(s->items, low, high);
+
+        uint8_slice_sort(s->items, low, pi-1);
+        uint8_slice_sort(s->items, pi+1, high);
+    }
 
 	return 0;
 }
