@@ -20,7 +20,7 @@ typedef struct {
     uint8_t *items;
     size_t len;
     size_t cap;
-	compare_func_t compare; 
+	compare_func_t compare;
 } uint8_slice_t;
 
 /**
@@ -105,7 +105,7 @@ uint8_slice_foreach(uint8_slice_t *s, iter_func_t ift, void *user_data);
  * uint8_slice_sort uses thet Quick Sort algorithm to sort the contents of the
  * slice if it is a standard type.
  */
-void
+int
 uint8_slice_sort(uint8_slice_t *s, size_t low, size_t high);
 
 #endif /** end __UINT8_H */

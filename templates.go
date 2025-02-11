@@ -184,6 +184,7 @@ const sliceImplementationTmpl = `// This is generated code from safe_array_gen. 
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "{{ .Name }}_slice.h"
 {{- else }}
@@ -392,28 +393,35 @@ int
 }
 
 static void
-swap(uint8_t *a, uint8_t *b)
+swap({{ .Name }} *x, {{ .Name }} *y)
 {
-    uint8_t tmp = *a;
-    *a = *b;
-    *b = tmp;
+    {{ .Name }} tmp = *x;
+    *x = *y;
+    *y = tmp;
 }
 
 static size_t
 partition({{ $typeName }} *{{ $typeArg }}, size_t low, size_t high)
 {
-    uint8_t pivot = {{ $typeArg }}->items[high];
-    size_t i = (low-1);
+    size_t pi = low + (rand() % (high - low));
 
-    for (size_t j = low; j <= high-1; j++) {
-        if ({{ $typeArg }}->items[j] <= pivot) {
-            i++;
+	if (pi != high) {
+		swap(&{{ $typeArg }}->items[pi], &{{ $typeArg }}->items[high]);
+	}
+    
+	{{ .Name }} pv = {{ $typeArg }}->items[high];
+    	
+    size_t i = low;
+
+    for (size_t j = low; j < high; j++) {
+        if ({{ $typeArg }}->items[j] <= pi) {
             swap(&{{ $typeArg }}->items[i], &{{ $typeArg }}->items[j]);
+			i++;
         }
     }
-    swap(&{{ $typeArg }}->items[i+1], &{{ $typeArg }}->items[high]);
+    swap(&{{ $typeArg }}->items[i], &{{ $typeArg }}->items[high]);
 
-    return (i+1);
+    return i;
 }
 
 int
@@ -423,11 +431,13 @@ int
 		return 0;
 	}
 
-    if (low < high) {
-        size_t pi = partition({{ $typeArg }}->items, low, high);
+	srand(time(NULL));
 
-        {{ $funcPrefix }}_sort({{ $typeArg }}->items, low, pi-1);
-        {{ $funcPrefix }}_sort({{ $typeArg }}->items, pi+1, high);
+    if (low < high) {
+        size_t pi = partition({{ $typeArg }}, low, high);
+
+        {{ $funcPrefix }}_sort({{ $typeArg }}, low, pi-1);
+        {{ $funcPrefix }}_sort({{ $typeArg }}, pi+1, high);
     }
 
 	return 0;

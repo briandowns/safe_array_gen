@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "uint8_t_slice.h"
 
@@ -22,7 +23,7 @@ uint8_slice_new(const size_t cap)
 
 void
 uint8_slice_free(uint8_slice_t *s) {
-	if (s != NULL && s->items != NULL) { 
+	if (s != NULL && s->items != NULL) {
 		free(s->items);
     	free(s);
 	} 
@@ -188,28 +189,35 @@ uint8_slice_foreach(uint8_slice_t *s, iter_func_t ift, void *user_data)
 }
 
 static void
-swap(uint8_t *a, uint8_t *b)
+swap(uint8_t *x, uint8_t *y)
 {
-    uint8_t tmp = *a;
-    *a = *b;
-    *b = tmp;
+    uint8_t tmp = *x;
+    *x = *y;
+    *y = tmp;
 }
 
 static size_t
 partition(uint8_slice_t *s, size_t low, size_t high)
 {
-    uint8_t pivot = s->items[high];
-    size_t i = (low-1);
+    size_t pi = low + (rand() % (high - low));
 
-    for (size_t j = low; j <= high - 1; j++) {
-        if (s->items[j] <= pivot) {
-            i++;
+	if (pi != high) {
+		swap(&s->items[pi], &s->items[high]);
+	}
+    
+	uint8_t pv = s->items[high];
+    	
+    size_t i = low;
+
+    for (size_t j = low; j < high; j++) {
+        if (s->items[j] <= pv) {
             swap(&s->items[i], &s->items[j]);
+			i++;
         }
     }
-    swap(&s->items[i + 1], &s->items[high]);
+    swap(&s->items[i], &s->items[high]);
 
-    return (i+1);
+    return i;
 }
 
 int
@@ -219,11 +227,13 @@ uint8_slice_sort(uint8_slice_t *s, size_t low, size_t high)
 		return 0;
 	}
 
-    if (low < high) {
-        size_t pi = partition(s->items, low, high);
+	srand(time(NULL));
 
-        uint8_slice_sort(s->items, low, pi-1);
-        uint8_slice_sort(s->items, pi+1, high);
+    if (low < high) {
+        size_t pi = partition(s, low, high);
+
+        uint8_slice_sort(s, low, pi-1);
+        uint8_slice_sort(s, pi+1, high);
     }
 
 	return 0;
