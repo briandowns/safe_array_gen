@@ -5,7 +5,6 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 #include <time.h>
 
@@ -192,7 +191,7 @@ uint8_slice_foreach(uint8_slice_t *s, iter_func_t ift, void *user_data)
 static int
 qsort_compare(const void *x, const void *y) {
 	return (*(uint8_t*)x - *(uint8_t*)y);
- }
+}
 
 int
 uint8_slice_sort(uint8_slice_t *s)
@@ -205,3 +204,4 @@ uint8_slice_sort(uint8_slice_t *s)
 
 	return 0;
 }
+

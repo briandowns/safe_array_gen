@@ -106,7 +106,7 @@ uint8_slice_foreach(uint8_slice_t *s, iter_func_t ift, void *user_data);
  * slice if it is a standard type.
  */
 int
-uint8_slice_sort(uint8_slice_t *s, size_t low, size_t high);
+uint8_slice_sort(uint8_slice_t *s);
 
 #endif /** end __UINT8_H */
 #ifdef __cplusplus

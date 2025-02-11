@@ -394,18 +394,19 @@ int
 
 static int
 qsort_compare(const void *x, const void *y) {
-	return (*(uint8_t*)x - *(uint8_t*)y);
- }
+	return (*({{ .Name }}*)x - *({{ .Name }}*)y);
+}
 
 int
-uint8_slice_sort(uint8_slice_t *s)
+{{ $funcPrefix }}_sort({{ $typeName }} *{{ $typeArg }})
 {
-	if (s->len < 2) {
+	if ({{ $typeArg }}->len < 2) {
 		return 0;
 	}
 
-	qsort(s->items, s->len, sizeof(uint8_t), qsort_compare);
+	qsort({{ $typeArg }}->items, {{ $typeArg }}->len, sizeof({{ .Name }}), qsort_compare);
 
 	return 0;
 }
+
 `

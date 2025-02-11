@@ -17,6 +17,7 @@ Safe Array Generator makes generating safe arrays in C easy. Safe arrays are sim
 * first
 * last
 * foreach
+* sort
 
 ## Usage
 
