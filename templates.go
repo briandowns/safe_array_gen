@@ -142,7 +142,7 @@ int
  * slice if it is a standard type.
  */
 int
-{{ $funcPrefix }}_sort({{ $typeName }} *{{ $typeArg }}, size_t low, size_t high);
+{{ $funcPrefix }}_sort({{ $typeName }} *{{ $typeArg }});
 
 #endif /** end __{{ $headerName }}_H */
 #ifdef __cplusplus
@@ -392,53 +392,19 @@ int
 	return 0;
 }
 
-static void
-swap({{ .Name }} *x, {{ .Name }} *y)
-{
-    {{ .Name }} tmp = *x;
-    *x = *y;
-    *y = tmp;
-}
-
-static size_t
-partition({{ $typeName }} *{{ $typeArg }}, size_t low, size_t high)
-{
-    size_t pi = low + (rand() % (high - low));
-
-	if (pi != high) {
-		swap(&{{ $typeArg }}->items[pi], &{{ $typeArg }}->items[high]);
-	}
-    
-	{{ .Name }} pv = {{ $typeArg }}->items[high];
-    	
-    size_t i = low;
-
-    for (size_t j = low; j < high; j++) {
-        if ({{ $typeArg }}->items[j] <= pi) {
-            swap(&{{ $typeArg }}->items[i], &{{ $typeArg }}->items[j]);
-			i++;
-        }
-    }
-    swap(&{{ $typeArg }}->items[i], &{{ $typeArg }}->items[high]);
-
-    return i;
-}
+static int
+qsort_compare(const void *x, const void *y) {
+	return (*(uint8_t*)x - *(uint8_t*)y);
+ }
 
 int
-{{ $funcPrefix }}_sort({{ $typeName }} *{{ $typeArg }}, size_t low, size_t high)
+uint8_slice_sort(uint8_slice_t *s)
 {
-	if ({{ $typeArg }}->len == 0) {
+	if (s->len < 2) {
 		return 0;
 	}
 
-	srand(time(NULL));
-
-    if (low < high) {
-        size_t pi = partition({{ $typeArg }}, low, high);
-
-        {{ $funcPrefix }}_sort({{ $typeArg }}, low, pi-1);
-        {{ $funcPrefix }}_sort({{ $typeArg }}, pi+1, high);
-    }
+	qsort(s->items, s->len, sizeof(uint8_t), qsort_compare);
 
 	return 0;
 }

@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <time.h>
 
@@ -188,53 +189,19 @@ uint8_slice_foreach(uint8_slice_t *s, iter_func_t ift, void *user_data)
 	return 0;
 }
 
-static void
-swap(uint8_t *x, uint8_t *y)
-{
-    uint8_t tmp = *x;
-    *x = *y;
-    *y = tmp;
-}
-
-static size_t
-partition(uint8_slice_t *s, size_t low, size_t high)
-{
-    size_t pi = low + (rand() % (high - low));
-
-	if (pi != high) {
-		swap(&s->items[pi], &s->items[high]);
-	}
-    
-	uint8_t pv = s->items[high];
-    	
-    size_t i = low;
-
-    for (size_t j = low; j < high; j++) {
-        if (s->items[j] <= pv) {
-            swap(&s->items[i], &s->items[j]);
-			i++;
-        }
-    }
-    swap(&s->items[i], &s->items[high]);
-
-    return i;
-}
+static int
+qsort_compare(const void *x, const void *y) {
+	return (*(uint8_t*)x - *(uint8_t*)y);
+ }
 
 int
-uint8_slice_sort(uint8_slice_t *s, size_t low, size_t high)
+uint8_slice_sort(uint8_slice_t *s)
 {
-	if (s->len == 0) {
+	if (s->len < 2) {
 		return 0;
 	}
 
-	srand(time(NULL));
-
-    if (low < high) {
-        size_t pi = partition(s, low, high);
-
-        uint8_slice_sort(s, low, pi-1);
-        uint8_slice_sort(s, pi+1, high);
-    }
+	qsort(s->items, s->len, sizeof(uint8_t), qsort_compare);
 
 	return 0;
 }
