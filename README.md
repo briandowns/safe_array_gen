@@ -32,13 +32,13 @@ E.g.
 Generate the slice and associated functions.
 
 ```sh
-sag -t uint8_t
+safe_array_gen -t uint8_t
 ```
 
 Generate slice type with a custom name.
 
 ```sh
-sag -t char -n grades
+safe_array_gen -t char -n grades
 ```
 
 ## Contributing
