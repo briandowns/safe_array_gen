@@ -120,6 +120,18 @@ int
 {{ $funcPrefix }}_replace({{ $typeName }} *{{ $typeArg }}, const size_t idx, const {{ .Name }} val);
 
 /**
+ * {{ $funcPrefix }} returns the first element of the slice.
+ */
+{{ .Name }}
+{{ $funcPrefix }}_first({{ $typeName }} *{{ $typeArg }});
+
+/**
+ * {{ $funcPrefix }} returns the last element of the slice.
+ */
+{{ .Name }}
+{{ $funcPrefix }}_last({{ $typeName }} *{{ $typeArg }});
+
+/**
  * {{ $funcPrefix }}_foreach iterates through the slice and runs the user provided
  * function on each item. Additional user provided data can be provided 
  * using the user_data argument.
@@ -132,7 +144,7 @@ int
  * of the slice if it is a standard type. When using a custom type for items,
  * like a struct, a sort_compare_func_t needs to be set.
  */
-int
+void
 {{ $funcPrefix }}_sort({{ $typeName }} *{{ $typeArg }});
 
 #endif /** end __{{ $headerName }}_H */
@@ -365,11 +377,11 @@ qsort_compare(const void *x, const void *y) {
 	return (*({{ .Name }}*)x - *({{ .Name }}*)y);
 }
 
-int
+void
 {{ $funcPrefix }}_sort({{ $typeName }} *{{ $typeArg }})
 {
 	if ({{ $typeArg }}->len < 2) {
-		return 0;
+		return;
 	}
 
 	if ({{ $typeArg }}->sort_compare != NULL) {
@@ -377,6 +389,5 @@ int
 	} else {
 		qsort({{ $typeArg }}->items, {{ $typeArg }}->len, sizeof({{ .Name }}), qsort_compare);
 	}
-	return 0;
 }
 `
