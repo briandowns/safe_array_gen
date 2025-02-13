@@ -4,20 +4,24 @@ Safe Array Generator makes generating safe arrays in C easy. Safe arrays are sim
 
 ## Functions Generated
 
-* new
-* free
-* get
-* append
-* reverse
-* compare
-* copy
-* contains
-* delete
-* replace
-* first
-* last
-* foreach 
+All functions take the `(type)_slice_t` type as the first argument. Within that type is the array of the specified type. All operations are then performed on that array.
+
+* new - Create a new value of type `(type)_slice_t` pointer.
+* free - Free the memory used by the slice and by `(type)_slice_t`.
+* get - Retrieve an item from the slice by index.
+* append - Append a value onto the end of a slice.
+* reverse - Reverse the contents of a slice.
+* compare - Compare 2 slices.
+* copy - Copy the contents from one slice to another.
+* contains - Checks to see if the given value is in the slice.
+* delete - Deletes an item from the slice.
+* replace - Replaces an item in the slice.
+* first - Retrieves the first item in the slice.
+* last - Retrieves the last item in the slice.
+* foreach - Takes a function to be ran for each element in the slice.
 * sort - when using structs or non integer types, a custom compare func is required to be set.
+
+More detailed documention can be found in the generated header file.
 
 ## Usage
 
@@ -25,13 +29,13 @@ Safe Array Generator is CLI driven and takes flags and arguments as input. It ca
 
 E.g.
 
-Generate the "array" and associated functions.
+Generate the slice and associated functions.
 
 ```sh
 sag -t uint8_t
 ```
 
-Generate "array" type with a custom name.
+Generate slice type with a custom name.
 
 ```sh
 sag -t char -n grades
