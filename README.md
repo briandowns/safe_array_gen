@@ -16,8 +16,8 @@ Safe Array Generator makes generating safe arrays in C easy. Safe arrays are sim
 * replace
 * first
 * last
-* foreach
-* sort
+* foreach 
+* sort - when using structs or non integer types, a custom compare func is required to be set.
 
 ## Usage
 

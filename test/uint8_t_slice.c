@@ -29,7 +29,6 @@ uint8_slice_free(uint8_slice_t *s) {
 	} 
 }
 
-
 uint8_t
 uint8_slice_get(uint8_slice_t *s, size_t idx)
 {
@@ -53,6 +52,10 @@ uint8_slice_append(uint8_slice_t *s, const uint8_t val)
 
 void
 uint8_slice_reverse(uint8_slice_t *s) {
+	if (s->len < 2) {
+		return;
+	}
+
 	uint64_t i = s->len - 1;
     uint64_t j = 0;
 
@@ -68,6 +71,10 @@ uint8_slice_reverse(uint8_slice_t *s) {
 bool
 uint8_slice_compare(const uint8_slice_t *s1, const uint8_slice_t *s2, void *user_data)
 {
+	if (s1->len == 0 && s2->len == 0) {
+		return true;
+	}
+
 	if (s1->len != s2->len) {
 		return false;
 	}
@@ -94,6 +101,10 @@ uint8_slice_compare(const uint8_slice_t *s1, const uint8_slice_t *s2, void *user
 int
 uint8_slice_copy(const uint8_slice_t *s1, uint8_slice_t *s2, int overwrite)
 {
+	if (s2->len == 0) {
+		return 0;
+	}
+
 	if (overwrite) {
 		if (s1->len != s2->len) {
 			s2->cap = s1->cap;
@@ -152,7 +163,6 @@ uint8_slice_replace(uint8_slice_t *s, const size_t idx, const uint8_t val)
 	return 0;
 }
 
-
 uint8_t
 uint8_slice_first(uint8_slice_t *s)
 {
@@ -162,7 +172,6 @@ uint8_slice_first(uint8_slice_t *s)
 
 	return s->items[0];
 }
-
 
 uint8_t
 uint8_slice_last(uint8_slice_t *s)
@@ -175,7 +184,7 @@ uint8_slice_last(uint8_slice_t *s)
 }
 
 int
-uint8_slice_foreach(uint8_slice_t *s, iter_func_t ift, void *user_data)
+uint8_slice_foreach(uint8_slice_t *s, foreach_func_t ift, void *user_data)
 {
 	if (s->len == 0) {
 		return 0;
@@ -200,7 +209,11 @@ uint8_slice_sort(uint8_slice_t *s)
 		return 0;
 	}
 
-	qsort(s->items, s->len, sizeof(uint8_t), qsort_compare);
+	if (s->sort_compare != NULL) {
+		qsort(s->items, s->len, sizeof(uint8_t), s->sort_compare);
+	} else {
+		qsort(s->items, s->len, sizeof(uint8_t), qsort_compare);
+	}
 
 	return 0;
 }

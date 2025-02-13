@@ -42,11 +42,10 @@ var (
 )
 
 var (
-	vers        bool
-	typesFlag   string
-	pointerFlag bool
-	appendFlag  string
-	nameFlag    string
+	vers       bool
+	typesFlag  string
+	appendFlag string
+	nameFlag   string
 )
 
 const usage = `version: %s
@@ -57,7 +56,6 @@ Options:
     -h            help
     -v            show version and exit
     -t            types, comma seperated (int8,int16,...)
-    -p            use a pointer for the given type(s)
     -a            only generate implementation code and append 
                   to the given file
     -n            custom name for the given type
@@ -85,7 +83,6 @@ func main() {
 
 	flag.BoolVar(&vers, "v", false, "")
 	flag.StringVar(&typesFlag, "t", "", "")
-	flag.BoolVar(&pointerFlag, "p", false, "")
 	flag.StringVar(&appendFlag, "a", "", "")
 	flag.StringVar(&nameFlag, "n", "", "")
 	flag.Parse()
@@ -146,8 +143,7 @@ func main() {
 		}
 
 		d := data{
-			Pointer: pointerFlag,
-			Append:  true,
+			Append: true,
 		}
 
 		if nameFlag != "" {
@@ -167,8 +163,7 @@ func main() {
 	}
 
 	d := data{
-		Pointer: pointerFlag,
-		Append:  false,
+		Append: false,
 	}
 
 	if nameFlag != "" {

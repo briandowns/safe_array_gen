@@ -13,14 +13,16 @@ extern "C" {
 #include <stdint.h>
 #include <stdlib.h>
 
-typedef bool (*compare_func_t)(const uint8_t a, const uint8_t b, void *user_data);
-typedef void (*iter_func_t)(const uint8_t item, void *user_data);
+typedef bool (*compare_slice_func_t)(const uint8_t a, const uint8_t b, void *user_data);
+typedef void (*foreach_func_t)(const uint8_t item, void *user_data);
+typedef int (*sort_compare_func_t)(const void *x, const void *y);
 
 typedef struct {
     uint8_t *items;
     size_t len;
     size_t cap;
-	compare_func_t compare;
+	compare_slice_func_t compare;
+	sort_compare_func_t sort_compare;
 } uint8_slice_t;
 
 /**
@@ -99,11 +101,12 @@ uint8_slice_replace(uint8_slice_t *s, const size_t idx, const uint8_t val);
  * using the user_data argument.
  */
 int
-uint8_slice_foreach(uint8_slice_t *s, iter_func_t ift, void *user_data);
+uint8_slice_foreach(uint8_slice_t *s, foreach_func_t ift, void *user_data);
 
 /**
- * uint8_slice_sort uses thet Quick Sort algorithm to sort the contents of the
- * slice if it is a standard type.
+ * uint8_slice_sort uses thet Quick Sort algorithm to sort the contents
+ * of the slice if it is a standard type. When using a custom type for items,
+ * like a struct, a sort_compare_func_t needs to be set.
  */
 int
 uint8_slice_sort(uint8_slice_t *s);

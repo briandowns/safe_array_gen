@@ -17,19 +17,11 @@ extern "C" {
 #include <stdint.h>
 #include <stdlib.h>
 
-{{- $arg := "" -}}
-{{- $items := "" -}}
-{{- if .Pointer -}}
-{{- $arg = "*val" -}}
-{{- $items = "**items" -}}
-{{- else -}}
-{{- $arg = "val" -}}
-{{- $items = "*items" -}}
-{{ end }}
+typedef bool (*compare_slice_func_t)(const {{ .Name }} a, const {{ .Name }} b, void *user_data);
+typedef void (*foreach_func_t)(const {{ .Name }} item, void *user_data);
+typedef int (*sort_compare_func_t)(const void *x, const void *y);
 
-typedef bool (*compare_func_t)(const {{ .Name }} a, const {{ .Name }} b, void *user_data);
-typedef void (*iter_func_t)(const {{ .Name }} item, void *user_data);
-
+{{- $items := "*items" -}}
 {{- $typeName := "" }}
 {{- $funcPrefix := "" }}
 {{- $typeArg := "" -}}
@@ -41,7 +33,8 @@ typedef struct {
     {{ .Name }} {{ $items }};
     size_t len;
     size_t cap;
-	compare_func_t compare;
+	compare_slice_func_t compare;
+	sort_compare_func_t sort_compare;
 } {{ $typeName }};
 {{- else -}}
 {{- $typeName = printf "%s_slice_t" $name }}
@@ -51,7 +44,8 @@ typedef struct {
     {{ .Name }} {{ $items }};
     size_t len;
     size_t cap;
-	compare_func_t compare;
+	compare_slice_func_t compare;
+	sort_compare_func_t sort_compare;
 } {{ $typeName }};
 {{- end }}
 
@@ -73,18 +67,14 @@ void
  * {{ $funcPrefix }}_get attempts to retrieve the value at the given index. If
  * the index is out of range, 0 is returned indicating an error.
  */
-{{- if .Pointer }}
-{{ .Name }}*
-{{- else }}
 {{ .Name }}
-{{- end }}
 {{ $funcPrefix }}_get({{ $typeName }} *s, size_t idx);
 
 /**
  * {{ $funcPrefix }}_append attempts to append the data to the given array.
  */
 void
-{{ $funcPrefix }}_append({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} {{ $arg }});
+{{ $funcPrefix }}_append({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} val);
 
 /**
  * {{ $funcPrefix }}_reverse the contents of the array.
@@ -113,7 +103,7 @@ int
  * {{ $funcPrefix }}_contains checks to see if the given value is in the slice.
  */
 bool
-{{ $funcPrefix }}_contains(const {{ $typeName }} *{{ $typeArg }}, {{ .Name }} {{ $arg }});
+{{ $funcPrefix }}_contains(const {{ $typeName }} *{{ $typeArg }}, {{ .Name }} val);
 
 /**
  * {{ $funcPrefix }}_delete removes the item at the given index and returns the
@@ -127,7 +117,7 @@ int
  * value.
  */
 int
-{{ $funcPrefix }}_replace({{ $typeName }} *{{ $typeArg }}, const size_t idx, const {{ .Name }} {{ $arg }});
+{{ $funcPrefix }}_replace({{ $typeName }} *{{ $typeArg }}, const size_t idx, const {{ .Name }} val);
 
 /**
  * {{ $funcPrefix }}_foreach iterates through the slice and runs the user provided
@@ -135,11 +125,12 @@ int
  * using the user_data argument.
  */
 int
-{{ $funcPrefix }}_foreach({{ $typeName }} *{{ $typeArg }}, iter_func_t ift, void *user_data);
+{{ $funcPrefix }}_foreach({{ $typeName }} *{{ $typeArg }}, foreach_func_t ift, void *user_data);
 
 /**
- * {{ $funcPrefix }}_sort uses thet Quick Sort algorithm to sort the contents of the
- * slice if it is a standard type.
+ * {{ $funcPrefix }}_sort uses thet Quick Sort algorithm to sort the contents
+ * of the slice if it is a standard type. When using a custom type for items,
+ * like a struct, a sort_compare_func_t needs to be set.
  */
 int
 {{ $funcPrefix }}_sort({{ $typeName }} *{{ $typeArg }});
@@ -154,18 +145,11 @@ const sliceImplementationTmpl = `// This is generated code from safe_array_gen. 
 // sure of what you are doing.
 
 {{- $name := Strip .Name "_t" }}
-{{- $arg := "" }}
-{{- $items := "" -}}
+{{- $arg := "val" }}
+{{- $items := "*items" -}}
 {{- $typeName := "" }}
 {{- $typeArg := "" -}}
 {{- $funcPrefix := "" }}
-{{- if .Pointer -}}
-{{- $arg = "*val" -}}
-{{- $items = "**items" -}}
-{{- else -}}
-{{- $arg = "val" -}}
-{{- $items = "*items" -}}
-{{- end -}}
 
 {{- if .CustomName -}}
 {{- $typeName = .CustomName }}
@@ -193,6 +177,8 @@ typedef struct {
     {{ .Name }} {{ $items }};
     size_t len;
     size_t cap;
+	compare_slice_func_t compare;
+	sort_compare_func_t sort_compare;
 } {{ $typeName }};
 {{- end -}}
 {{- $name := Strip .Name "_t" }}
@@ -216,11 +202,7 @@ void
 	} 
 }
 
-{{ if .Pointer -}}
-{{ .Name }}*
-{{- else }}
 {{ .Name }}
-{{- end }}
 {{ $funcPrefix }}_get({{ $typeName }} *{{ $typeArg }}, size_t idx)
 {
     if (idx >= 0 && idx < {{ $typeArg }}->len) {
@@ -243,6 +225,10 @@ void
 
 void
 {{ $funcPrefix }}_reverse({{ $typeName }} *{{ $typeArg }}) {
+	if ({{ $typeArg }}->len < 2) {
+		return;
+	}
+
 	uint64_t i = {{ $typeArg }}->len - 1;
     uint64_t j = 0;
 
@@ -258,6 +244,9 @@ void
 bool
 {{ $funcPrefix }}_compare(const {{ $typeName }} *{{ $typeArg }}1, const {{ $typeName }} *{{ $typeArg }}2, void *user_data)
 {
+	if ({{ $typeArg }}1->len == 0 && {{ $typeArg }}2->len == 0) {
+		return true;
+	}
 	if ({{ $typeArg }}1->len != {{ $typeArg }}2->len) {
 		return false;
 	}
@@ -273,11 +262,7 @@ bool
 	}
 
 	for (size_t i = 0; i < {{ $typeArg }}1->len; i++) {
-{{- if .Pointer }}
-    	if (*{{ $typeArg }}1->items[i] != *{{ $typeArg }}2->items[i]) {
-{{- else }}
 		if ({{ $typeArg }}1->items[i] != {{ $typeArg }}2->items[i]) {
-{{- end }}
 			return false;
 		}
 	}
@@ -288,6 +273,10 @@ bool
 int
 {{ $funcPrefix }}_copy(const {{ $typeName }} *{{ $typeArg }}1, {{ $typeName }} *{{ $typeArg }}2, int overwrite)
 {
+	if ({{ $typeArg }}2->len == 0) {
+		return 0;
+	}
+
 	if (overwrite) {
 		if ({{ $typeArg }}1->len != {{ $typeArg }}2->len) {
 			{{ $typeArg }}2->cap = {{ $typeArg }}1->cap;
@@ -311,11 +300,7 @@ bool
 	}
 
 	for (size_t i = 0; i < {{ $typeArg }}->len; i++) {
-{{- if .Pointer }}
-    	if (*{{ $typeArg }}->items[i] == val) {
-{{- else }}
 		if ({{ $typeArg }}->items[i] == val) {
-{{- end }}
 			return true;
 		}
 	}
@@ -350,11 +335,7 @@ int
 	return 0;
 }
 
-{{ if .Pointer -}}
-{{ .Name }}*
-{{- else }}
 {{ .Name }}
-{{- end }}
 {{ $funcPrefix }}_first({{ $typeName }} *{{ $typeArg }})
 {
 	if ({{ $typeArg }}->len == 0) {
@@ -364,11 +345,7 @@ int
 	return {{ $typeArg }}->items[0];
 }
 
-{{ if .Pointer -}}
-{{ .Name }}*
-{{- else }}
 {{ .Name }}
-{{- end }}
 {{ $funcPrefix }}_last({{ $typeName }} *{{ $typeArg }})
 {
 	if ({{ $typeArg }}->len == 0) {
@@ -379,7 +356,7 @@ int
 }
 
 int
-{{ $funcPrefix }}_foreach({{ $typeName }} *{{ $typeArg }}, iter_func_t ift, void *user_data)
+{{ $funcPrefix }}_foreach({{ $typeName }} *{{ $typeArg }}, foreach_func_t ift, void *user_data)
 {
 	if ({{ $typeArg }}->len == 0) {
 		return 0;
@@ -404,7 +381,11 @@ int
 		return 0;
 	}
 
-	qsort({{ $typeArg }}->items, {{ $typeArg }}->len, sizeof({{ .Name }}), qsort_compare);
+	if ({{ $typeArg }}->sort_compare != NULL) {
+		qsort({{ $typeArg }}->items, {{ $typeArg }}->len, sizeof({{ .Name }}), {{ $typeArg }}->sort_compare);
+	} else {
+		qsort({{ $typeArg }}->items, {{ $typeArg }}->len, sizeof({{ .Name }}), qsort_compare);
+	}
 
 	return 0;
 }
