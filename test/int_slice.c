@@ -8,13 +8,13 @@
 #include <string.h>
 #include <time.h>
 
-#include "uint8_t_slice.h"
+#include "int_slice.h"
 
-uint8_slice_t*
-uint8_slice_new(const size_t cap)
+int_slice_t*
+int_slice_new(const size_t cap)
 {
-    uint8_slice_t *s = calloc(1, sizeof(uint8_slice_t));
-    s->items = calloc(1, sizeof(uint8_t) * cap);
+    int_slice_t *s = calloc(1, sizeof(int_slice_t));
+    s->items = calloc(1, sizeof(int) * cap);
     s->len = 0;
     s->cap = cap;
 
@@ -22,15 +22,15 @@ uint8_slice_new(const size_t cap)
 }
 
 void
-uint8_slice_free(uint8_slice_t *s) {
+int_slice_free(int_slice_t *s) {
 	if (s != NULL && s->items != NULL) {
 		free(s->items);
     	free(s);
 	} 
 }
 
-uint8_t
-uint8_slice_get(uint8_slice_t *s, size_t idx)
+int
+int_slice_get(int_slice_t *s, size_t idx)
 {
     if (idx >= 0 && idx < s->len) {
         return s->items[idx];
@@ -40,18 +40,18 @@ uint8_slice_get(uint8_slice_t *s, size_t idx)
 }
 
 void
-uint8_slice_append(uint8_slice_t *s, const uint8_t val)
+int_slice_append(int_slice_t *s, const int val)
 {
     if (s->len == s->cap) {
         s->cap *= 2;
-        s->items = realloc(s->items, sizeof(uint8_t) * s->cap);
+        s->items = realloc(s->items, sizeof(int) * s->cap);
     }
 
     s->items[s->len++] = val;
 }
 
 void
-uint8_slice_reverse(uint8_slice_t *s) {
+int_slice_reverse(int_slice_t *s) {
 	if (s->len < 2) {
 		return;
 	}
@@ -60,7 +60,7 @@ uint8_slice_reverse(uint8_slice_t *s) {
     uint64_t j = 0;
 
     while(i > j) {
-        uint8_t temp = s->items[i];
+        int temp = s->items[i];
         s->items[i] = s->items[j];
         s->items[j] = temp;
         i--;
@@ -69,12 +69,11 @@ uint8_slice_reverse(uint8_slice_t *s) {
 }
 
 bool
-uint8_slice_compare(const uint8_slice_t *s1, const uint8_slice_t *s2, void *user_data)
+int_slice_compare(const int_slice_t *s1, const int_slice_t *s2, void *user_data)
 {
 	if (s1->len == 0 && s2->len == 0) {
 		return true;
 	}
-
 	if (s1->len != s2->len) {
 		return false;
 	}
@@ -99,7 +98,7 @@ uint8_slice_compare(const uint8_slice_t *s1, const uint8_slice_t *s2, void *user
 }
 
 int
-uint8_slice_copy(const uint8_slice_t *s1, uint8_slice_t *s2, int overwrite)
+int_slice_copy(const int_slice_t *s1, int_slice_t *s2, int overwrite)
 {
 	if (s2->len == 0) {
 		return 0;
@@ -108,7 +107,7 @@ uint8_slice_copy(const uint8_slice_t *s1, uint8_slice_t *s2, int overwrite)
 	if (overwrite) {
 		if (s1->len != s2->len) {
 			s2->cap = s1->cap;
-			s2->items = realloc(s2->items, sizeof(uint8_t) * s1->cap);
+			s2->items = realloc(s2->items, sizeof(int) * s1->cap);
 		}
 	}
 
@@ -121,7 +120,7 @@ uint8_slice_copy(const uint8_slice_t *s1, uint8_slice_t *s2, int overwrite)
 }
 
 bool
-uint8_slice_contains(const uint8_slice_t *s, uint8_t val)
+int_slice_contains(const int_slice_t *s, int val)
 {
 	if (s->len == 0) {
 		return false;
@@ -137,7 +136,7 @@ uint8_slice_contains(const uint8_slice_t *s, uint8_t val)
 }
 
 int
-uint8_slice_delete(uint8_slice_t *s, const size_t idx)
+int_slice_delete(int_slice_t *s, const size_t idx)
 {
 	if (s->len == 0 || idx > s->len) {
 		return -1;
@@ -152,7 +151,7 @@ uint8_slice_delete(uint8_slice_t *s, const size_t idx)
 }
 
 int
-uint8_slice_replace(uint8_slice_t *s, const size_t idx, const uint8_t val)
+int_slice_replace(int_slice_t *s, const size_t idx, const int val)
 {
 	if (s->len == 0 || idx > s->len) {
 		return -1;
@@ -163,8 +162,8 @@ uint8_slice_replace(uint8_slice_t *s, const size_t idx, const uint8_t val)
 	return 0;
 }
 
-uint8_t
-uint8_slice_first(uint8_slice_t *s)
+int
+int_slice_first(int_slice_t *s)
 {
 	if (s->len == 0) {
 		return 0;
@@ -173,8 +172,8 @@ uint8_slice_first(uint8_slice_t *s)
 	return s->items[0];
 }
 
-uint8_t
-uint8_slice_last(uint8_slice_t *s)
+int
+int_slice_last(int_slice_t *s)
 {
 	if (s->len == 0) {
 		return 0;
@@ -184,7 +183,7 @@ uint8_slice_last(uint8_slice_t *s)
 }
 
 int
-uint8_slice_foreach(uint8_slice_t *s, foreach_func_t ift, void *user_data)
+int_slice_foreach(int_slice_t *s, foreach_func_t ift, void *user_data)
 {
 	if (s->len == 0) {
 		return 0;
@@ -199,20 +198,20 @@ uint8_slice_foreach(uint8_slice_t *s, foreach_func_t ift, void *user_data)
 
 static int
 qsort_compare(const void *x, const void *y) {
-	return (*(uint8_t*)x - *(uint8_t*)y);
+	return (*(int*)x - *(int*)y);
 }
 
 int
-uint8_slice_sort(uint8_slice_t *s)
+int_slice_sort(int_slice_t *s)
 {
 	if (s->len < 2) {
 		return 0;
 	}
 
 	if (s->sort_compare != NULL) {
-		qsort(s->items, s->len, sizeof(uint8_t), s->sort_compare);
+		qsort(s->items, s->len, sizeof(int), s->sort_compare);
 	} else {
-		qsort(s->items, s->len, sizeof(uint8_t), qsort_compare);
+		qsort(s->items, s->len, sizeof(int), qsort_compare);
 	}
 
 	return 0;

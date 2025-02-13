@@ -197,8 +197,8 @@ typedef struct {
 void
 {{ $funcPrefix }}_free({{ $typeName }} *{{ $typeArg }}) {
 	if ({{ $typeArg }} != NULL && {{ $typeArg }}->items != NULL) {
-		free({{ $typeArg }}->items);
-    	free({{ $typeArg }});
+        free({{ $typeArg }}->items);
+        free({{ $typeArg }});
 	} 
 }
 
@@ -208,7 +208,6 @@ void
     if (idx >= 0 && idx < {{ $typeArg }}->len) {
         return {{ $typeArg }}->items[idx];
     }
-
     return 0;
 }
 
@@ -219,7 +218,6 @@ void
         {{ $typeArg }}->cap *= 2;
         {{ $typeArg }}->items = realloc({{ $typeArg }}->items, sizeof({{ .Name }}) * {{ $typeArg }}->cap);
     }
-
     {{ $typeArg }}->items[{{ $typeArg }}->len++] = val;
 }
 
@@ -229,7 +227,7 @@ void
 		return;
 	}
 
-	uint64_t i = {{ $typeArg }}->len - 1;
+    uint64_t i = {{ $typeArg }}->len - 1;
     uint64_t j = 0;
 
     while(i > j) {
@@ -257,7 +255,6 @@ bool
 				return false;
 			}
 		}
-
 		return true;
 	}
 
@@ -266,7 +263,6 @@ bool
 			return false;
 		}
 	}
-
 	return true;
 }
 
@@ -288,7 +284,6 @@ int
 		{{ $typeArg }}2->items[i] = {{ $typeArg }}1->items[i];
 		{{ $typeArg }}2->len++;
 	}
-
 	return {{ $typeArg }}2->len;
 }
 
@@ -304,7 +299,6 @@ bool
 			return true;
 		}
 	}
-
 	return false;
 }
 
@@ -341,7 +335,6 @@ int
 	if ({{ $typeArg }}->len == 0) {
 		return 0;
 	}
-
 	return {{ $typeArg }}->items[0];
 }
 
@@ -351,7 +344,6 @@ int
 	if ({{ $typeArg }}->len == 0) {
 		return 0;
 	}
-
 	return {{ $typeArg }}->items[{{ $typeArg }}->len-1]; 
 }
 
@@ -365,7 +357,6 @@ int
 	for (size_t i = 0; i < {{ $typeArg }}->len; i++) {
 		ift({{ $typeArg }}->items[i], user_data);
 	}
-
 	return 0;
 }
 
@@ -386,8 +377,6 @@ int
 	} else {
 		qsort({{ $typeArg }}->items, {{ $typeArg }}->len, sizeof({{ .Name }}), qsort_compare);
 	}
-
 	return 0;
 }
-
 `
