@@ -89,11 +89,30 @@ int
 int_slice_delete(int_slice_t *s, const size_t idx);
 
 /**
- * int_slice_replace replaces the value at the given index with the new
+ * int_slice_replace_by_idx replaces the value at the given index with the new
  * value.
  */
 int
 int_slice_replace_by_idx(int_slice_t *s, const size_t idx, const int val);
+
+/**
+ * int_slice_replace_by_val replaces occurances of the value with the
+ * new value the number of times given. 
+ */
+int
+int_slice_replace_by_val(int_slice_t *s, const int old_val, const int new_val, size_t times);
+
+/**
+ * int_slice returns the first element of the slice.
+ */
+int
+int_slice_first(int_slice_t *s);
+
+/**
+ * int_slice returns the last element of the slice.
+ */
+int
+int_slice_last(int_slice_t *s);
 
 /**
  * int_slice_foreach iterates through the slice and runs the user provided
@@ -108,7 +127,7 @@ int_slice_foreach(int_slice_t *s, foreach_func_t ift, void *user_data);
  * of the slice if it is a standard type. When using a custom type for items,
  * like a struct, a sort_compare_func_t needs to be set.
  */
-int
+void
 int_slice_sort(int_slice_t *s);
 
 #endif /** end __INT_H */
