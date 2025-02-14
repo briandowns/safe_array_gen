@@ -15,7 +15,8 @@ All functions take the `(type)_slice_t` type as the first argument. Within that 
 * copy - Copy the contents from one slice to another.
 * contains - Checks to see if the given value is in the slice.
 * delete - Deletes an item from the slice.
-* replace - Replaces an item in the slice.
+* replace_by_idx - Replaces an item by index from the slice.
+* replace_by_val - Replaces n occurances of an item from the slice.
 * first - Retrieves the first item in the slice.
 * last - Retrieves the last item in the slice.
 * foreach - Takes a function to be ran for each element in the slice.

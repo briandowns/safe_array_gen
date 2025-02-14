@@ -24,8 +24,8 @@ int_slice_new(const size_t cap)
 void
 int_slice_free(int_slice_t *s) {
 	if (s != NULL && s->items != NULL) {
-		free(s->items);
-    	free(s);
+        free(s->items);
+        free(s);
 	} 
 }
 
@@ -35,7 +35,6 @@ int_slice_get(int_slice_t *s, size_t idx)
     if (idx >= 0 && idx < s->len) {
         return s->items[idx];
     }
-
     return 0;
 }
 
@@ -46,7 +45,6 @@ int_slice_append(int_slice_t *s, const int val)
         s->cap *= 2;
         s->items = realloc(s->items, sizeof(int) * s->cap);
     }
-
     s->items[s->len++] = val;
 }
 
@@ -56,7 +54,7 @@ int_slice_reverse(int_slice_t *s) {
 		return;
 	}
 
-	uint64_t i = s->len - 1;
+    uint64_t i = s->len - 1;
     uint64_t j = 0;
 
     while(i > j) {
@@ -84,7 +82,6 @@ int_slice_compare(const int_slice_t *s1, const int_slice_t *s2, void *user_data)
 				return false;
 			}
 		}
-
 		return true;
 	}
 
@@ -93,7 +90,6 @@ int_slice_compare(const int_slice_t *s1, const int_slice_t *s2, void *user_data)
 			return false;
 		}
 	}
-
 	return true;
 }
 
@@ -115,7 +111,6 @@ int_slice_copy(const int_slice_t *s1, int_slice_t *s2, int overwrite)
 		s2->items[i] = s1->items[i];
 		s2->len++;
 	}
-
 	return s2->len;
 }
 
@@ -131,7 +126,6 @@ int_slice_contains(const int_slice_t *s, int val)
 			return true;
 		}
 	}
-
 	return false;
 }
 
@@ -151,14 +145,29 @@ int_slice_delete(int_slice_t *s, const size_t idx)
 }
 
 int
-int_slice_replace(int_slice_t *s, const size_t idx, const int val)
+int_slice_replace_by_idx(int_slice_t *s, const size_t idx, const int val)
 {
 	if (s->len == 0 || idx > s->len) {
 		return -1;
 	}
-
 	s->items[idx] = val;
 
+	return 0;
+}
+
+int
+int_slice_replace_by_val(int_slice_t *s, const int old_val, const int new_val, size_t times)
+{
+	if (s->len == 0) {
+		return -1;
+	}
+
+	for (size_t i = 0; i < s->len && times != 0; i++) {
+		if (s->compare(s->items[i], old_val, NULL)) {
+			s->items[i] = new_val;
+			times--;
+		}
+	}
 	return 0;
 }
 
@@ -168,7 +177,6 @@ int_slice_first(int_slice_t *s)
 	if (s->len == 0) {
 		return 0;
 	}
-
 	return s->items[0];
 }
 
@@ -178,7 +186,6 @@ int_slice_last(int_slice_t *s)
 	if (s->len == 0) {
 		return 0;
 	}
-
 	return s->items[s->len-1]; 
 }
 
@@ -192,7 +199,6 @@ int_slice_foreach(int_slice_t *s, foreach_func_t ift, void *user_data)
 	for (size_t i = 0; i < s->len; i++) {
 		ift(s->items[i], user_data);
 	}
-
 	return 0;
 }
 
@@ -201,11 +207,11 @@ qsort_compare(const void *x, const void *y) {
 	return (*(int*)x - *(int*)y);
 }
 
-int
+void
 int_slice_sort(int_slice_t *s)
 {
 	if (s->len < 2) {
-		return 0;
+		return;
 	}
 
 	if (s->sort_compare != NULL) {
@@ -213,7 +219,4 @@ int_slice_sort(int_slice_t *s)
 	} else {
 		qsort(s->items, s->len, sizeof(int), qsort_compare);
 	}
-
-	return 0;
 }
-

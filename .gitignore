@@ -7,5 +7,5 @@
 .vscode/*
 
 bin
-test/all
+test/test
 .vscode

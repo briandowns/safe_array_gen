@@ -17,7 +17,7 @@ extern "C" {
 #include <stdint.h>
 #include <stdlib.h>
 
-typedef bool (*compare_slice_func_t)(const {{ .Name }} a, const {{ .Name }} b, void *user_data);
+typedef bool (*compare_slice_func_t)(const {{ .Name }} x, const {{ .Name }} y, void *user_data);
 typedef void (*foreach_func_t)(const {{ .Name }} item, void *user_data);
 typedef int (*sort_compare_func_t)(const void *x, const void *y);
 
@@ -113,11 +113,18 @@ int
 {{ $funcPrefix }}_delete({{ $typeName }} *{{ $typeArg }}, const size_t idx);
 
 /**
- * {{ $funcPrefix }}_replace replaces the value at the given index with the new
+ * {{ $funcPrefix }}_replace_by_idx replaces the value at the given index with the new
  * value.
  */
 int
-{{ $funcPrefix }}_replace({{ $typeName }} *{{ $typeArg }}, const size_t idx, const {{ .Name }} val);
+{{ $funcPrefix }}_replace_by_idx({{ $typeName }} *{{ $typeArg }}, const size_t idx, const {{ .Name }} val);
+
+/**
+ * {{ $funcPrefix }}_replace_by_val replaces occurances of the value with the
+ * new value the number of times given. 
+ */
+int
+{{ $funcPrefix }}_replace_by_val({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} old_val, const {{ .Name }} new_val, size_t times);
 
 /**
  * {{ $funcPrefix }} returns the first element of the slice.
@@ -330,14 +337,29 @@ int
 }
 
 int
-{{ $funcPrefix }}_replace({{ $typeName }} *{{ $typeArg }}, const size_t idx, const {{ .Name }} {{ $arg }})
+{{ $funcPrefix }}_replace_by_idx({{ $typeName }} *{{ $typeArg }}, const size_t idx, const {{ .Name }} {{ $arg }})
 {
 	if ({{ $typeArg }}->len == 0 || idx > {{ $typeArg }}->len) {
 		return -1;
 	}
-
 	{{ $typeArg }}->items[idx] = {{ $arg }};
 
+	return 0;
+}
+
+int
+{{ $funcPrefix }}_replace_by_val({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} old_val, const {{ .Name }} new_val, size_t times)
+{
+	if ({{ $typeArg }}->len == 0) {
+		return -1;
+	}
+
+	for (size_t i = 0; i < {{ $typeArg }}->len && times != 0; i++) {
+		if ({{ $typeArg }}->compare({{ $typeArg }}->items[i], old_val, NULL)) {
+			{{ $typeArg }}->items[i] = new_val;
+			times--;
+		}
+	}
 	return 0;
 }
 
