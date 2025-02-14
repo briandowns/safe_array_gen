@@ -93,7 +93,7 @@ int_slice_delete(int_slice_t *s, const size_t idx);
  * value.
  */
 int
-int_slice_replace(int_slice_t *s, const size_t idx, const int val);
+int_slice_replace_by_idx(int_slice_t *s, const size_t idx, const int val);
 
 /**
  * int_slice_foreach iterates through the slice and runs the user provided

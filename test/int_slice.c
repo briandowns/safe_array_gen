@@ -151,14 +151,29 @@ int_slice_delete(int_slice_t *s, const size_t idx)
 }
 
 int
-int_slice_replace(int_slice_t *s, const size_t idx, const int val)
+int_slice_replace_by_idx(int_slice_t *s, const size_t idx, const int val)
 {
 	if (s->len == 0 || idx > s->len) {
 		return -1;
 	}
-
 	s->items[idx] = val;
 
+	return 0;
+}
+
+int
+int_slice_replace_by_val(int_slice_t *s, const int val, size_t times)
+{
+	if (s->len == 0) {
+		return -1;
+	}
+
+	for (size_t i = 0; i < s->len && times != 0; i++) {
+		if (s->compare(s->items[i], val, NULL)) {
+			s->items[i] = val;
+			times--;
+		}
+	}
 	return 0;
 }
 

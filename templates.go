@@ -113,7 +113,7 @@ int
 {{ $funcPrefix }}_delete({{ $typeName }} *{{ $typeArg }}, const size_t idx);
 
 /**
- * {{ $funcPrefix }}_replace replaces the value at the given index with the new
+ * {{ $funcPrefix }}_replace_by_idx replaces the value at the given index with the new
  * value.
  */
 int
@@ -330,7 +330,7 @@ int
 }
 
 int
-{{ $funcPrefix }}_replace({{ $typeName }} *{{ $typeArg }}, const size_t idx, const {{ .Name }} {{ $arg }})
+{{ $funcPrefix }}_replace_by_idx({{ $typeName }} *{{ $typeArg }}, const size_t idx, const {{ .Name }} {{ $arg }})
 {
 	if ({{ $typeArg }}->len == 0 || idx > {{ $typeArg }}->len) {
 		return -1;
