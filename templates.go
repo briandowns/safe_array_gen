@@ -154,6 +154,13 @@ int
 void
 {{ $funcPrefix }}_sort({{ $typeName }} *{{ $typeArg }});
 
+/**
+ * {{ $funcPrefix }}_repeat takes a value and repeats that value in the slice
+ * for the number of times given.
+ */
+int
+{{ $funcPrefix }}_repeat({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} val, const size_t times);
+
 #endif /** end __{{ $headerName }}_H */
 #ifdef __cplusplus
 }
@@ -185,6 +192,7 @@ const sliceImplementationTmpl = `// This is generated code from safe_array_gen. 
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -405,5 +413,18 @@ void
 	} else {
 		qsort({{ $typeArg }}->items, {{ $typeArg }}->len, sizeof({{ .Name }}), qsort_compare);
 	}
+}
+
+int
+{{ $funcPrefix }}_repeat({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} val, const size_t times)
+{
+	if ({{ $typeArg }}->len == 0) {
+		return -1;
+	}
+
+	for (size_t i = 0; i < times; i++) {
+		{{ $funcPrefix }}_append({{ $typeArg }}, val);
+	}
+	return 0;
 }
 `

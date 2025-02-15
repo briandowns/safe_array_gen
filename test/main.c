@@ -72,6 +72,10 @@ main(int argc, char **argv)
     int_slice_replace_by_val(p->grades, 100, 700, 3);
     int_slice_foreach(p->grades, print_item, NULL);
 
+    int_slice_repeat(p->grades, 88, 10);
+    assert(p->grades->len == 21);
+    int_slice_foreach(p->grades, print_item, NULL);
+
     int_slice_free(p->grades);
     free(p);
 

@@ -130,6 +130,13 @@ int_slice_foreach(int_slice_t *s, foreach_func_t ift, void *user_data);
 void
 int_slice_sort(int_slice_t *s);
 
+/**
+ * int_slice_repeat takes a value and repeats that value in the slice
+ * for the number of times given.
+ */
+int
+int_slice_repeat(int_slice_t *s, const int val, const size_t times);
+
 #endif /** end __INT_H */
 #ifdef __cplusplus
 }
