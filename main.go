@@ -109,14 +109,8 @@ func main() {
 		"ToUpper": func(s string) string {
 			return strings.ToUpper(s)
 		},
-		"Contains": func(s, ss string) bool {
-			return strings.Contains(s, ss)
-		},
 		"Strip": func(s, ss string) string {
 			return strings.Replace(s, ss, "", 1)
-		},
-		"Concat": func(str1, str2 string) string {
-			return str1 + str2
 		},
 	}
 
