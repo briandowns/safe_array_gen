@@ -21,7 +21,8 @@ All functions take the `(type)_slice_t` type as the first argument. Within that 
 * last - Retrieves the last item in the slice.
 * foreach - Takes a function to be ran for each element in the slice.
 * sort - When using structs or non integer types, a custom compare func is required to be set.
-* repeat - Repeat a value for the given number of times.  
+* repeat - Repeat a value for the given number of times.
+* count - Counts the number of occurances of a given value. If compare is not `NULL` that function is used to do the comparison.
 
 More detailed documention can be found in the generated header file.
 

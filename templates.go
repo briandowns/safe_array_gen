@@ -17,9 +17,10 @@ extern "C" {
 #include <stdint.h>
 #include <stdlib.h>
 
-typedef bool (*compare_slice_func_t)(const {{ .Name }} x, const {{ .Name }} y, void *user_data);
+typedef bool (*compare_func_t)(const {{ .Name }} x, const {{ .Name }} y, void *user_data);
 typedef void (*foreach_func_t)(const {{ .Name }} item, void *user_data);
 typedef int (*sort_compare_func_t)(const void *x, const void *y);
+typedef bool (*val_equal_func_t)(const {{ .Name }} x, const {{ .Name }} y, void *user_data);
 
 {{- $items := "*items" -}}
 {{- $typeName := "" }}
@@ -33,7 +34,7 @@ typedef struct {
     {{ .Name }} {{ $items }};
     size_t len;
     size_t cap;
-	compare_slice_func_t compare;
+	compare_func_t compare;
 	sort_compare_func_t sort_compare;
 } {{ $typeName }};
 {{- else -}}
@@ -44,7 +45,7 @@ typedef struct {
     {{ .Name }} {{ $items }};
     size_t len;
     size_t cap;
-	compare_slice_func_t compare;
+	compare_func_t compare;
 	sort_compare_func_t sort_compare;
 } {{ $typeName }};
 {{- end }}
@@ -161,6 +162,12 @@ void
 int
 {{ $funcPrefix }}_repeat({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} val, const size_t times);
 
+/**
+ * {{ $funcPrefix }}_count counts the occurances of the given value.
+ */
+size_t
+{{ $funcPrefix }}_count({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} val);
+
 #endif /** end __{{ $headerName }}_H */
 #ifdef __cplusplus
 }
@@ -204,7 +211,7 @@ typedef struct {
     {{ .Name }} {{ $items }};
     size_t len;
     size_t cap;
-	compare_slice_func_t compare;
+	compare_func_t compare;
 	sort_compare_func_t sort_compare;
 } {{ $typeName }};
 {{- end -}}
@@ -426,5 +433,31 @@ int
 		{{ $funcPrefix }}_append({{ $typeArg }}, val);
 	}
 	return 0;
+}
+
+size_t
+{{ $funcPrefix }}_count({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} val)
+{
+	size_t count = 0;
+
+	if ({{ $typeArg }}->len == 0) {
+		return count;
+	}
+
+
+	if ({{ $typeArg }}->compare != NULL) {
+		for (size_t i = 0; i < {{ $typeArg }}->len; i++) {
+			if ({{ $typeArg }}->compare({{ $typeArg }}->items[i], val, NULL)) {
+				count++;
+			}
+		}
+	} else {
+		for (size_t i = 0; i < {{ $typeArg }}->len; i++) {
+			if ({{ $typeArg }}->items[i] == val) {
+				count++;
+			}
+		}
+	}
+	return count;
 }
 `
