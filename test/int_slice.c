@@ -228,3 +228,29 @@ int_slice_repeat(int_slice_t *s, const int val, const size_t times)
 	}
 	return 0;
 }
+
+size_t
+int_slice_count(int_slice_t *s, const int val)
+{
+	size_t count = 0;
+
+	if (s->len == 0) {
+		return count;
+	}
+
+
+	if (s->compare != NULL) {
+		for (size_t i = 0; i < s->len; i++) {
+			if (s->compare(s->items[i], val, NULL)) {
+				count++;
+			}
+		}
+	} else {
+		for (size_t i = 0; i < s->len; i++) {
+			if (s->items[i] == val) {
+				count++;
+			}
+		}
+	}
+	return count;
+}

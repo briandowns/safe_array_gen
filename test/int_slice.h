@@ -13,15 +13,16 @@ extern "C" {
 #include <stdint.h>
 #include <stdlib.h>
 
-typedef bool (*compare_slice_func_t)(const int x, const int y, void *user_data);
+typedef bool (*compare_func_t)(const int x, const int y, void *user_data);
 typedef void (*foreach_func_t)(const int item, void *user_data);
 typedef int (*sort_compare_func_t)(const void *x, const void *y);
+typedef bool (*val_equal_func_t)(const int x, const int y, void *user_data);
 
 typedef struct {
     int *items;
     size_t len;
     size_t cap;
-	compare_slice_func_t compare;
+	compare_func_t compare;
 	sort_compare_func_t sort_compare;
 } int_slice_t;
 
@@ -136,6 +137,12 @@ int_slice_sort(int_slice_t *s);
  */
 int
 int_slice_repeat(int_slice_t *s, const int val, const size_t times);
+
+/**
+ * int_slice_count counts the occurances of the given value.
+ */
+size_t
+int_slice_count(int_slice_t *s, const int val);
 
 #endif /** end __INT_H */
 #ifdef __cplusplus
