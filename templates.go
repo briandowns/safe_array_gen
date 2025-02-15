@@ -168,6 +168,12 @@ int
 size_t
 {{ $funcPrefix }}_count({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} val);
 
+/**
+ * {{ $funcPrefix }}_grow Grows the slice by the given size.
+ */
+size_t
+{{ $funcPrefix }}_grow({{ $typeName }} *{{ $typeArg }}, const size_t size);
+
 #endif /** end __{{ $headerName }}_H */
 #ifdef __cplusplus
 }
@@ -459,5 +465,18 @@ size_t
 		}
 	}
 	return count;
+}
+
+size_t
+{{ $funcPrefix }}_grow({{ $typeName }} *{{ $typeArg }}, const size_t size)
+{
+	if (size == 0) {
+		return {{ $typeArg }}->cap;
+	}
+
+	{{ $typeArg }}->cap += size;
+    {{ $typeArg }}->items = realloc({{ $typeArg }}->items, sizeof({{ .Name }}) * {{ $typeArg }}->cap);
+
+	return {{ $typeArg }}->cap;
 }
 `
