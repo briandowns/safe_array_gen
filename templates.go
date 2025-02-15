@@ -366,19 +366,13 @@ int
 {{ .Name }}
 {{ $funcPrefix }}_first({{ $typeName }} *{{ $typeArg }})
 {
-	if ({{ $typeArg }}->len == 0) {
-		return 0;
-	}
-	return {{ $typeArg }}->items[0];
+	return {{ $funcPrefix }}_get({{ $typeArg }}, 0);
 }
 
 {{ .Name }}
 {{ $funcPrefix }}_last({{ $typeName }} *{{ $typeArg }})
 {
-	if ({{ $typeArg }}->len == 0) {
-		return 0;
-	}
-	return {{ $typeArg }}->items[{{ $typeArg }}->len-1]; 
+	return {{ $funcPrefix }}_get({{ $typeArg }}, {{ $typeArg }}->len-1);
 }
 
 int

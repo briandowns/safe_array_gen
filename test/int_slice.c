@@ -174,19 +174,13 @@ int_slice_replace_by_val(int_slice_t *s, const int old_val, const int new_val, s
 int
 int_slice_first(int_slice_t *s)
 {
-	if (s->len == 0) {
-		return 0;
-	}
-	return s->items[0];
+	return int_slice_get(s, 0);
 }
 
 int
 int_slice_last(int_slice_t *s)
 {
-	if (s->len == 0) {
-		return 0;
-	}
-	return s->items[s->len-1]; 
+	return int_slice_get(s, s->len-1);
 }
 
 int
