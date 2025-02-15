@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -213,4 +214,17 @@ int_slice_sort(int_slice_t *s)
 	} else {
 		qsort(s->items, s->len, sizeof(int), qsort_compare);
 	}
+}
+
+int
+int_slice_repeat(int_slice_t *s, const int val, const size_t times)
+{
+	if (s->len == 0) {
+		return -1;
+	}
+
+	for (size_t i = 0; i < times; i++) {
+		int_slice_append(s, val);
+	}
+	return 0;
 }
