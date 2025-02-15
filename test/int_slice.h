@@ -144,6 +144,12 @@ int_slice_repeat(int_slice_t *s, const int val, const size_t times);
 size_t
 int_slice_count(int_slice_t *s, const int val);
 
+/**
+ * int_slice_grow Grows the slice by the given size.
+ */
+size_t
+int_slice_grow(int_slice_t *s, const size_t size);
+
 #endif /** end __INT_H */
 #ifdef __cplusplus
 }

@@ -254,3 +254,16 @@ int_slice_count(int_slice_t *s, const int val)
 	}
 	return count;
 }
+
+size_t
+int_slice_grow(int_slice_t *s, const size_t size)
+{
+	if (size == 0) {
+		return s->cap;
+	}
+
+	s->cap += size;
+    s->items = realloc(s->items, sizeof(int) * s->cap);
+
+	return s->cap;
+}

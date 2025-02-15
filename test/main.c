@@ -77,9 +77,10 @@ main(int argc, char **argv)
     int_slice_foreach(p->grades, print_item, NULL);
 
     size_t count = int_slice_count(p->grades, 88);
-    printf("XXX - %lu\n", count);
-    assert(count == 10);
 
+    assert(count == 10);
+    int_slice_grow(p->grades, 2);
+    assert(p->grades->cap == 34);
     int_slice_free(p->grades);
     free(p);
 
