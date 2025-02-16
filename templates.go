@@ -437,10 +437,6 @@ void
 int
 {{ $funcPrefix }}_repeat({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} val, const size_t times)
 {
-	if ({{ $typeArg }}->len == 0) {
-		return -1;
-	}
-
 	for (size_t i = 0; i < times; i++) {
 		{{ $funcPrefix }}_append({{ $typeArg }}, val);
 	}

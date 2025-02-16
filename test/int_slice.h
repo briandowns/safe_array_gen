@@ -73,7 +73,7 @@ int_slice_compare(const int_slice_t *s1, const int_slice_t *s2, void *user_data)
  * the overwrite option has been selected, the code will make sure there is 
  * enough space in slice 2 and overwrite its contents.
  */
-int
+size_t
 int_slice_copy(const int_slice_t *s1, int_slice_t *s2, int overwrite);
 
 /**

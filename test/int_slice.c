@@ -94,7 +94,7 @@ int_slice_compare(const int_slice_t *s1, const int_slice_t *s2, void *user_data)
 	return true;
 }
 
-int
+size_t
 int_slice_copy(const int_slice_t *s1, int_slice_t *s2, int overwrite)
 {
 	if (s2->len == 0) {
@@ -219,10 +219,6 @@ int_slice_sort(int_slice_t *s)
 int
 int_slice_repeat(int_slice_t *s, const int val, const size_t times)
 {
-	if (s->len == 0) {
-		return -1;
-	}
-
 	for (size_t i = 0; i < times; i++) {
 		int_slice_append(s, val);
 	}
