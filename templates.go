@@ -97,7 +97,7 @@ bool
  * the overwrite option has been selected, the code will make sure there is 
  * enough space in slice 2 and overwrite its contents.
  */
-int
+size_t
 {{ $funcPrefix }}_copy(const {{ $typeName }} *{{ $typeArg }}1, {{ $typeName }} *{{ $typeArg }}2, int overwrite);
 
 /**
@@ -312,7 +312,7 @@ bool
 	return true;
 }
 
-int
+size_t
 {{ $funcPrefix }}_copy(const {{ $typeName }} *{{ $typeArg }}1, {{ $typeName }} *{{ $typeArg }}2, int overwrite)
 {
 	if ({{ $typeArg }}2->len == 0) {
