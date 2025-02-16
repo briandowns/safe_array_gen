@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <time.h>
 
 #include "int_slice.h"
 
@@ -206,30 +207,50 @@ test_slice_concat()
 
 typedef void (*test_func_t)();
 
-#define TEST_RUN(name, func) { \
+typedef struct {
+    clock_t start;
+    clock_t end;
+    test_func_t *tests;
+} test_suite_t;
+
+static test_suite_t test_suite = {0};
+
+#define TESTS_INIT \
+    test_suite.start = clock(); \
+    printf("\nRunning tests: %s\n", __FILE__);
+
+#define RUN_TEST(name, func) { \
     printf("    %-20s", name); \
+    clock_t test_start = clock(); \
     func(); \
-    printf("successful\n"); \
+    clock_t test_end = clock(); \
+    double time_spent = (double)(test_end - test_start) / CLOCKS_PER_SEC; \
+    printf("successful   %-2.3f/ms\n", (time_spent*1000)); \
 }
+
+#define TESTS_COMPLETE \
+    test_suite.end = clock(); \
+    double ts = (double)(test_suite.end - test_suite.start) / CLOCKS_PER_SEC; \
+    printf("\nComplete: %-2.3f/ms\n", (ts*1000));
 
 int
 main(int argc, char **argv)
 {
-    test_func_t *tests[1] = {0};
+    TESTS_INIT;
 
-    printf("Running tests...\n");
+    RUN_TEST("append", test_slice_append);
+    RUN_TEST("get", test_slice_get);
+    RUN_TEST("contains", test_slice_contains);
+    RUN_TEST("delete", test_slice_delete);
+    RUN_TEST("replace by index", test_slice_replace_by_index);
+    RUN_TEST("count", test_slice_count);
+    RUN_TEST("sort", test_slice_sort);
+    RUN_TEST("replace by value", test_slice_replace_by_val);
+    RUN_TEST("repeat", test_slice_repeat);
+    RUN_TEST("grow", test_slice_grow);
+    RUN_TEST("concat", test_slice_concat);
 
-    TEST_RUN("append", test_slice_append);
-    TEST_RUN("get", test_slice_get);
-    TEST_RUN("contains", test_slice_contains);
-    TEST_RUN("delete", test_slice_delete);
-    TEST_RUN("replace by index", test_slice_replace_by_index);
-    TEST_RUN("count", test_slice_count);
-    TEST_RUN("sort", test_slice_sort);
-    TEST_RUN("replace by value", test_slice_replace_by_val);
-    TEST_RUN("repeat", test_slice_repeat);
-    TEST_RUN("grow", test_slice_grow);
-    TEST_RUN("concat", test_slice_concat);
+    TESTS_COMPLETE;
 
     return 0;
 }
