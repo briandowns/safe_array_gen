@@ -267,3 +267,21 @@ int_slice_grow(int_slice_t *s, const size_t size)
 
 	return s->cap;
 }
+
+size_t
+int_slice_concat(int_slice_t *s1, const int_slice_t *s2)
+{
+	if (s2->len == 0) {
+		return s1->len;
+	}
+	
+	s1->cap += s2->len;
+	s1->items = realloc(s1->items, sizeof(int) * s2->len);
+
+	for (size_t i = 0, j = s1->len; i < s2->len; i++, j++) {
+		s1->items[j] = s2->items[i];
+		s1->len++;
+	}
+	
+	return s1->len;
+}

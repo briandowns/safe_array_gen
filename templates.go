@@ -174,6 +174,12 @@ size_t
 size_t
 {{ $funcPrefix }}_grow({{ $typeName }} *{{ $typeArg }}, const size_t size);
 
+/**
+ * {{ $funcPrefix }}_concat Combine the second slice into the first.
+ */
+size_t
+{{ $funcPrefix }}_concat({{ $typeName }} *{{ $typeArg }}1, const {{ $typeName }} *{{ $typeArg }}2);
+
 #endif /** end __{{ $headerName }}_H */
 #ifdef __cplusplus
 }
@@ -478,5 +484,23 @@ size_t
     {{ $typeArg }}->items = realloc({{ $typeArg }}->items, sizeof({{ .Name }}) * {{ $typeArg }}->cap);
 
 	return {{ $typeArg }}->cap;
+}
+
+size_t
+{{ $funcPrefix }}_concat({{ $typeName }} *{{ $typeArg }}1, const {{ $typeName }} *{{ $typeArg }}2)
+{
+	if ({{ $typeArg }}2->len == 0) {
+		return {{ $typeArg }}1->len;
+	}
+	
+	{{ $typeArg }}1->cap += {{ $typeArg }}2->len;
+	{{ $typeArg }}1->items = realloc({{ $typeArg }}1->items, sizeof({{ .Name }}) * {{ $typeArg }}2->len);
+
+	for (size_t i = 0, j = {{ $typeArg }}1->len; i < {{ $typeArg }}2->len; i++, j++) {
+		{{ $typeArg }}1->items[j] = {{ $typeArg }}2->items[i];
+		{{ $typeArg }}1->len++;
+	}
+	
+	return {{ $typeArg }}1->len;
 }
 `
