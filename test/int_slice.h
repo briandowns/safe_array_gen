@@ -150,6 +150,12 @@ int_slice_count(int_slice_t *s, const int val);
 size_t
 int_slice_grow(int_slice_t *s, const size_t size);
 
+/**
+ * int_slice_concat Combine the second slice into the first.
+ */
+size_t
+int_slice_concat(int_slice_t *s1, const int_slice_t *s2);
+
 #endif /** end __INT_H */
 #ifdef __cplusplus
 }

@@ -81,7 +81,29 @@ main(int argc, char **argv)
     assert(count == 10);
     int_slice_grow(p->grades, 2);
     assert(p->grades->cap == 34);
+
+
+    int_slice_t *s1 = int_slice_new(3);
+    int_slice_t *s2 = int_slice_new(3);
+    int_slice_append(s1, 7);
+    int_slice_append(s1, 7);
+    int_slice_append(s1, 7);
+    printf("%lu\n", s1->len);
+    assert(s1->len == 3);
+    assert(s1->cap == 3);
+    int_slice_append(s2, 9);
+    int_slice_append(s2, 9);
+    int_slice_append(s2, 9);
+    assert(s2->len == 3);
+    assert(s2->cap == 3);
+
+    size_t s1_len = int_slice_concat(s1, s2);
+    printf("The new array: %lu\n", s1_len);
+    int_slice_foreach(s1, print_item, NULL);
+
     int_slice_free(p->grades);
+    int_slice_free(s1);
+    int_slice_free(s2);
     free(p);
 
     printf("Tests ran successfully!...\n");

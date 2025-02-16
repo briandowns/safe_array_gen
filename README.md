@@ -24,6 +24,7 @@ All functions take the `(type)_slice_t` type as the first argument. Within that 
 * repeat - Repeat a value for the given number of times.
 * count - Counts the number of occurances of a given value. If compare is not `NULL` that function is used to do the comparison.
 * grow - Grows the slice by the given quantity.
+* concat - Concatenate 2 slices into 1.
 
 More detailed documention can be found in the generated header file.
 
