@@ -4,36 +4,42 @@
 
 #include "utest.h"
 
-static utest_suite_t *test_suite = {0};
+#define GREEN "\x1B[32m"
+#define RED   "\x1B[31m"
+#define RESET "\033[0m"
+
+static size_t count = 0;
+static size_t passed = 0;
+static size_t failed = 0;
+static clock_t start = 0;
+static clock_t end = 0;
 
 void
 utest_init()
 {
-    test_suite = (utest_suite_t*)calloc(1, sizeof(utest_suite_t));
-
-    test_suite->start = clock(); \
-    printf("\nRunning tests: %s\n", __FILE__);
+    start = clock();
+    printf("Running test suite...\n");
 }
 
 bool
-utest_run(const char *name, utest_func_t func) {
-    test_suite->count++;
-
-    printf("    %-20s", name);
+utest_run(const char *name, utest_func_t func, const char *func_name) {
+    count++;
 
     clock_t test_start = clock();
     bool ret = func();
     clock_t test_end = clock();
 
     double time_spent = (double)(test_end - test_start) / CLOCKS_PER_SEC;
-    if (ret) {
-        test_suite->failed++;
-        printf(RED"%-8s"RESET"   %-2.3f/ms\n", "failed", (time_spent*1000));
+    if (ret == false) {
+        failed++;
+        printf("    %-28s%-2s:%-21d" RED "%-8s" RESET "   %-2.3f/ms\n",
+            name, func_name, 0, "failed", (time_spent*1000));
         return false;
     }
 
-    test_suite->passed++;
-    printf(GREEN "%-8s"RESET"   %-2.3f/ms\n", "passed", (time_spent*1000));
+    passed++;
+    printf("    %-28s%-28s" GREEN "%-8s" RESET "   %-2.3f/ms\n",
+         name, "", "passed", (time_spent*1000));
 
     return true;
 }
@@ -41,9 +47,8 @@ utest_run(const char *name, utest_func_t func) {
 void
 utest_complete()
 {
-    test_suite->end = clock();
-    double ts = (double)(test_suite->end - test_suite->start) / CLOCKS_PER_SEC; \
+    end = clock();
+    double ts = (double)(end - start) / CLOCKS_PER_SEC; \
     printf("\nTotal: %-4lu Passed: %-4lu Failed: %-4lu in  %-2.3f/ms\n", \
-         test_suite->count, test_suite->passed, test_suite->failed, (ts*1000));
-    free(test_suite);
+         count, passed, failed, (ts*1000));
 }
