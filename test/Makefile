@@ -1,6 +1,6 @@
 all: clean
 	../bin/safe_array_gen -t int
-	cc -o test main.c int_slice.c
+	cc -o test main.c int_slice.c utest.c
 	./test
 
 .PHONY: clean
