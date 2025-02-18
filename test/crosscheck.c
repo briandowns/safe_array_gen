@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "utest.h"
+#include "crosscheck.h"
 
 #define GREEN "\x1B[32m"
 #define RED   "\x1B[31m"
