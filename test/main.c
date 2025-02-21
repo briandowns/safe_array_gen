@@ -221,7 +221,7 @@ test_slice_concat()
     CC_ASSERT_EQUAL_SIZE_T(s2->cap, 3);
 
     size_t s1_len = int_slice_concat(s1, s2);
-    CC_ASSERT_EQUAL_SIZE_T(s1_len, 5); // purposefully wrong... correct (6)
+    CC_ASSERT_EQUAL_SIZE_T(s1_len, 6); // purposefully wrong... correct (6)
 
     int_slice_free(s1);
     int_slice_free(s2);

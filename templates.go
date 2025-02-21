@@ -415,10 +415,10 @@ int
 	return 0;
 }
 
-/ **
-  * qsort_compare is a simple implementation of the function required to be
-  * passed to qsort.
-  */
+/**
+ * qsort_compare is a simple implementation of the function required to be
+ * passed to qsort.
+ */
 static int
 qsort_compare(const void *x, const void *y) {
 	return (*({{ .Name }}*)x - *({{ .Name }}*)y);
