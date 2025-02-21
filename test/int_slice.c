@@ -12,7 +12,7 @@
 #include "int_slice.h"
 
 int_slice_t*
-int_slice_new(const size_t cap)
+int_slice_new(const uint64_t cap)
 {
     int_slice_t *s = calloc(1, sizeof(int_slice_t));
     s->items = calloc(1, sizeof(int) * cap);
@@ -31,7 +31,7 @@ int_slice_free(int_slice_t *s) {
 }
 
 int
-int_slice_get(int_slice_t *s, size_t idx)
+int_slice_get(int_slice_t *s, uint64_t idx)
 {
     if (idx >= 0 && idx < s->len) {
         return s->items[idx];
@@ -78,7 +78,7 @@ int_slice_compare(const int_slice_t *s1, const int_slice_t *s2, void *user_data)
 	}
 
 	if (s1->compare != NULL) {
-		for (size_t i = 0; i < s1->len; i++) {
+		for (uint64_t i = 0; i < s1->len; i++) {
 			if (!s1->compare(s1->items[i], s2->items[i], user_data)) {
 				return false;
 			}
@@ -86,7 +86,7 @@ int_slice_compare(const int_slice_t *s1, const int_slice_t *s2, void *user_data)
 		return true;
 	}
 
-	for (size_t i = 0; i < s1->len; i++) {
+	for (uint64_t i = 0; i < s1->len; i++) {
 		if (s1->items[i] != s2->items[i]) {
 			return false;
 		}
@@ -94,8 +94,8 @@ int_slice_compare(const int_slice_t *s1, const int_slice_t *s2, void *user_data)
 	return true;
 }
 
-int
-int_slice_copy(const int_slice_t *s1, int_slice_t *s2, int overwrite)
+uint64_t
+int_slice_copy(const int_slice_t *s1, int_slice_t *s2, bool overwrite)
 {
 	if (s2->len == 0) {
 		return 0;
@@ -108,7 +108,7 @@ int_slice_copy(const int_slice_t *s1, int_slice_t *s2, int overwrite)
 		}
 	}
 
-	for (size_t i = 0; i < s1->len; i++) {
+	for (uint64_t i = 0; i < s1->len; i++) {
 		s2->items[i] = s1->items[i];
 		s2->len++;
 	}
@@ -122,7 +122,7 @@ int_slice_contains(const int_slice_t *s, int val)
 		return false;
 	}
 
-	for (size_t i = 0; i < s->len; i++) {
+	for (uint64_t i = 0; i < s->len; i++) {
 		if (s->items[i] == val) {
 			return true;
 		}
@@ -131,13 +131,13 @@ int_slice_contains(const int_slice_t *s, int val)
 }
 
 int
-int_slice_delete(int_slice_t *s, const size_t idx)
+int_slice_delete(int_slice_t *s, const uint64_t idx)
 {
 	if (s->len == 0 || idx > s->len) {
 		return -1;
 	}
 
-	for (size_t i = idx; i < s->len; i++) {
+	for (uint64_t i = idx; i < s->len; i++) {
 		s->items[i] = s->items[i + 1];
 	}
 	s->len--;
@@ -146,7 +146,7 @@ int_slice_delete(int_slice_t *s, const size_t idx)
 }
 
 int
-int_slice_replace_by_idx(int_slice_t *s, const size_t idx, const int val)
+int_slice_replace_by_idx(int_slice_t *s, const uint64_t idx, const int val)
 {
 	if (s->len == 0 || idx > s->len) {
 		return -1;
@@ -157,13 +157,13 @@ int_slice_replace_by_idx(int_slice_t *s, const size_t idx, const int val)
 }
 
 int
-int_slice_replace_by_val(int_slice_t *s, const int old_val, const int new_val, size_t times)
+int_slice_replace_by_val(int_slice_t *s, const int old_val, const int new_val, uint64_t times)
 {
 	if (s->len == 0) {
 		return -1;
 	}
 
-	for (size_t i = 0; i < s->len && times != 0; i++) {
+	for (uint64_t i = 0; i < s->len && times != 0; i++) {
 		if (s->compare(s->items[i], old_val, NULL)) {
 			s->items[i] = new_val;
 			times--;
@@ -191,12 +191,16 @@ int_slice_foreach(int_slice_t *s, foreach_func_t ift, void *user_data)
 		return 0;
 	}
 	
-	for (size_t i = 0; i < s->len; i++) {
+	for (uint64_t i = 0; i < s->len; i++) {
 		ift(s->items[i], user_data);
 	}
 	return 0;
 }
 
+/**
+ * qsort_compare is a simple implementation of the function required to be
+ * passed to qsort.
+ */
 static int
 qsort_compare(const void *x, const void *y) {
 	return (*(int*)x - *(int*)y);
@@ -216,23 +220,19 @@ int_slice_sort(int_slice_t *s)
 	}
 }
 
-int
-int_slice_repeat(int_slice_t *s, const int val, const size_t times)
+uint64_t
+int_slice_repeat(int_slice_t *s, const int val, const uint64_t times)
 {
-	if (s->len == 0) {
-		return -1;
-	}
-
-	for (size_t i = 0; i < times; i++) {
+	for (uint64_t i = 0; i < times; i++) {
 		int_slice_append(s, val);
 	}
-	return 0;
+	return s->len;
 }
 
-size_t
+uint64_t
 int_slice_count(int_slice_t *s, const int val)
 {
-	size_t count = 0;
+	uint64_t count = 0;
 
 	if (s->len == 0) {
 		return count;
@@ -240,13 +240,13 @@ int_slice_count(int_slice_t *s, const int val)
 
 
 	if (s->compare != NULL) {
-		for (size_t i = 0; i < s->len; i++) {
+		for (uint64_t i = 0; i < s->len; i++) {
 			if (s->compare(s->items[i], val, NULL)) {
 				count++;
 			}
 		}
 	} else {
-		for (size_t i = 0; i < s->len; i++) {
+		for (uint64_t i = 0; i < s->len; i++) {
 			if (s->items[i] == val) {
 				count++;
 			}
@@ -255,8 +255,8 @@ int_slice_count(int_slice_t *s, const int val)
 	return count;
 }
 
-size_t
-int_slice_grow(int_slice_t *s, const size_t size)
+uint64_t
+int_slice_grow(int_slice_t *s, const uint64_t size)
 {
 	if (size == 0) {
 		return s->cap;
@@ -268,7 +268,7 @@ int_slice_grow(int_slice_t *s, const size_t size)
 	return s->cap;
 }
 
-size_t
+uint64_t
 int_slice_concat(int_slice_t *s1, const int_slice_t *s2)
 {
 	if (s2->len == 0) {
@@ -278,7 +278,7 @@ int_slice_concat(int_slice_t *s1, const int_slice_t *s2)
 	s1->cap += s2->len;
 	s1->items = realloc(s1->items, sizeof(int) * s2->len);
 
-	for (size_t i = 0, j = s1->len; i < s2->len; i++, j++) {
+	for (uint64_t i = 0, j = s1->len; i < s2->len; i++, j++) {
 		s1->items[j] = s2->items[i];
 		s1->len++;
 	}

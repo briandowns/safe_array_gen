@@ -32,8 +32,8 @@ typedef bool (*val_equal_func_t)(const {{ .Name }} x, const {{ .Name }} y, void 
 {{ $typeArg = printf "%c" (index $typeName 0) -}}
 typedef struct {
     {{ .Name }} {{ $items }};
-    size_t len;
-    size_t cap;
+    uint64_t len;
+    uint64_t cap;
 	compare_func_t compare;
 	sort_compare_func_t sort_compare;
 } {{ $typeName }};
@@ -43,8 +43,8 @@ typedef struct {
 {{ $typeArg = "s" }}
 typedef struct {
     {{ .Name }} {{ $items }};
-    size_t len;
-    size_t cap;
+    uint64_t len;
+    uint64_t cap;
 	compare_func_t compare;
 	sort_compare_func_t sort_compare;
 } {{ $typeName }};
@@ -56,7 +56,7 @@ typedef struct {
  * is responsible for freeing this memory.
  */
 {{ $typeName }}*
-{{ $funcPrefix }}_new(const size_t cap);
+{{ $funcPrefix }}_new(const uint64_t cap);
 
 /**
  * {{ $funcPrefix }}_free frees the memory used by the given pointer. 
@@ -69,7 +69,7 @@ void
  * the index is out of range, 0 is returned indicating an error.
  */
 {{ .Name }}
-{{ $funcPrefix }}_get({{ $typeName }} *s, size_t idx);
+{{ $funcPrefix }}_get({{ $typeName }} *s, uint64_t idx);
 
 /**
  * {{ $funcPrefix }}_append attempts to append the data to the given array.
@@ -97,8 +97,8 @@ bool
  * the overwrite option has been selected, the code will make sure there is 
  * enough space in slice 2 and overwrite its contents.
  */
-size_t
-{{ $funcPrefix }}_copy(const {{ $typeName }} *{{ $typeArg }}1, {{ $typeName }} *{{ $typeArg }}2, int overwrite);
+uint64_t
+{{ $funcPrefix }}_copy(const {{ $typeName }} *{{ $typeArg }}1, {{ $typeName }} *{{ $typeArg }}2, bool overwrite);
 
 /**
  * {{ $funcPrefix }}_contains checks to see if the given value is in the slice.
@@ -111,21 +111,21 @@ bool
  * new length.
  */
 int
-{{ $funcPrefix }}_delete({{ $typeName }} *{{ $typeArg }}, const size_t idx);
+{{ $funcPrefix }}_delete({{ $typeName }} *{{ $typeArg }}, const uint64_t idx);
 
 /**
  * {{ $funcPrefix }}_replace_by_idx replaces the value at the given index with the new
  * value.
  */
 int
-{{ $funcPrefix }}_replace_by_idx({{ $typeName }} *{{ $typeArg }}, const size_t idx, const {{ .Name }} val);
+{{ $funcPrefix }}_replace_by_idx({{ $typeName }} *{{ $typeArg }}, const uint64_t idx, const {{ .Name }} val);
 
 /**
  * {{ $funcPrefix }}_replace_by_val replaces occurances of the value with the
  * new value the number of times given. 
  */
 int
-{{ $funcPrefix }}_replace_by_val({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} old_val, const {{ .Name }} new_val, size_t times);
+{{ $funcPrefix }}_replace_by_val({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} old_val, const {{ .Name }} new_val, uint64_t times);
 
 /**
  * {{ $funcPrefix }} returns the first element of the slice.
@@ -141,8 +141,8 @@ int
 
 /**
  * {{ $funcPrefix }}_foreach iterates through the slice and runs the user provided
- * function on each item. Additional user provided data can be provided 
- * using the user_data argument.
+ * function on each item. Additional user data can be provided using the
+ * user_data argument.
  */
 int
 {{ $funcPrefix }}_foreach({{ $typeName }} *{{ $typeArg }}, foreach_func_t ift, void *user_data);
@@ -157,27 +157,27 @@ void
 
 /**
  * {{ $funcPrefix }}_repeat takes a value and repeats that value in the slice
- * for the number of times given.
+ * for the number of times given and returns the new length of the slice.
  */
-int
-{{ $funcPrefix }}_repeat({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} val, const size_t times);
+uint64_t
+{{ $funcPrefix }}_repeat({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} val, const uint64_t times);
 
 /**
  * {{ $funcPrefix }}_count counts the occurances of the given value.
  */
-size_t
+uint64_t
 {{ $funcPrefix }}_count({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} val);
 
 /**
  * {{ $funcPrefix }}_grow Grows the slice by the given size.
  */
-size_t
-{{ $funcPrefix }}_grow({{ $typeName }} *{{ $typeArg }}, const size_t size);
+uint64_t
+{{ $funcPrefix }}_grow({{ $typeName }} *{{ $typeArg }}, const uint64_t size);
 
 /**
  * {{ $funcPrefix }}_concat Combine the second slice into the first.
  */
-size_t
+uint64_t
 {{ $funcPrefix }}_concat({{ $typeName }} *{{ $typeArg }}1, const {{ $typeName }} *{{ $typeArg }}2);
 
 #endif /** end __{{ $headerName }}_H */
@@ -221,8 +221,8 @@ const sliceImplementationTmpl = `// This is generated code from safe_array_gen. 
 
 typedef struct {
     {{ .Name }} {{ $items }};
-    size_t len;
-    size_t cap;
+    uint64_t len;
+    uint64_t cap;
 	compare_func_t compare;
 	sort_compare_func_t sort_compare;
 } {{ $typeName }};
@@ -230,7 +230,7 @@ typedef struct {
 {{- $name := Strip .Name "_t" }}
 
 {{ $typeName }}*
-{{ $funcPrefix }}_new(const size_t cap)
+{{ $funcPrefix }}_new(const uint64_t cap)
 {
     {{ $typeName }} *{{ $typeArg }} = calloc(1, sizeof({{ $typeName }}));
     {{ $typeArg }}->items = calloc(1, sizeof({{ .Name }}) * cap);
@@ -249,7 +249,7 @@ void
 }
 
 {{ .Name }}
-{{ $funcPrefix }}_get({{ $typeName }} *{{ $typeArg }}, size_t idx)
+{{ $funcPrefix }}_get({{ $typeName }} *{{ $typeArg }}, uint64_t idx)
 {
     if (idx >= 0 && idx < {{ $typeArg }}->len) {
         return {{ $typeArg }}->items[idx];
@@ -296,7 +296,7 @@ bool
 	}
 
 	if ({{ $typeArg }}1->compare != NULL) {
-		for (size_t i = 0; i < s1->len; i++) {
+		for (uint64_t i = 0; i < s1->len; i++) {
 			if (!{{ $typeArg }}1->compare(s1->items[i], {{ $typeArg }}2->items[i], user_data)) {
 				return false;
 			}
@@ -304,7 +304,7 @@ bool
 		return true;
 	}
 
-	for (size_t i = 0; i < {{ $typeArg }}1->len; i++) {
+	for (uint64_t i = 0; i < {{ $typeArg }}1->len; i++) {
 		if ({{ $typeArg }}1->items[i] != {{ $typeArg }}2->items[i]) {
 			return false;
 		}
@@ -312,8 +312,8 @@ bool
 	return true;
 }
 
-size_t
-{{ $funcPrefix }}_copy(const {{ $typeName }} *{{ $typeArg }}1, {{ $typeName }} *{{ $typeArg }}2, int overwrite)
+uint64_t
+{{ $funcPrefix }}_copy(const {{ $typeName }} *{{ $typeArg }}1, {{ $typeName }} *{{ $typeArg }}2, bool overwrite)
 {
 	if ({{ $typeArg }}2->len == 0) {
 		return 0;
@@ -326,7 +326,7 @@ size_t
 		}
 	}
 
-	for (size_t i = 0; i < {{ $typeArg }}1->len; i++) {
+	for (uint64_t i = 0; i < {{ $typeArg }}1->len; i++) {
 		{{ $typeArg }}2->items[i] = {{ $typeArg }}1->items[i];
 		{{ $typeArg }}2->len++;
 	}
@@ -340,7 +340,7 @@ bool
 		return false;
 	}
 
-	for (size_t i = 0; i < {{ $typeArg }}->len; i++) {
+	for (uint64_t i = 0; i < {{ $typeArg }}->len; i++) {
 		if ({{ $typeArg }}->items[i] == val) {
 			return true;
 		}
@@ -349,13 +349,13 @@ bool
 }
 
 int
-{{ $funcPrefix }}_delete({{ $typeName }} *{{ $typeArg }}, const size_t idx)
+{{ $funcPrefix }}_delete({{ $typeName }} *{{ $typeArg }}, const uint64_t idx)
 {
 	if ({{ $typeArg }}->len == 0 || idx > {{ $typeArg }}->len) {
 		return -1;
 	}
 
-	for (size_t i = idx; i < {{ $typeArg }}->len; i++) {
+	for (uint64_t i = idx; i < {{ $typeArg }}->len; i++) {
 		{{ $typeArg }}->items[i] = {{ $typeArg }}->items[i + 1];
 	}
 	{{ $typeArg }}->len--;
@@ -364,7 +364,7 @@ int
 }
 
 int
-{{ $funcPrefix }}_replace_by_idx({{ $typeName }} *{{ $typeArg }}, const size_t idx, const {{ .Name }} {{ $arg }})
+{{ $funcPrefix }}_replace_by_idx({{ $typeName }} *{{ $typeArg }}, const uint64_t idx, const {{ .Name }} {{ $arg }})
 {
 	if ({{ $typeArg }}->len == 0 || idx > {{ $typeArg }}->len) {
 		return -1;
@@ -375,13 +375,13 @@ int
 }
 
 int
-{{ $funcPrefix }}_replace_by_val({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} old_val, const {{ .Name }} new_val, size_t times)
+{{ $funcPrefix }}_replace_by_val({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} old_val, const {{ .Name }} new_val, uint64_t times)
 {
 	if ({{ $typeArg }}->len == 0) {
 		return -1;
 	}
 
-	for (size_t i = 0; i < {{ $typeArg }}->len && times != 0; i++) {
+	for (uint64_t i = 0; i < {{ $typeArg }}->len && times != 0; i++) {
 		if ({{ $typeArg }}->compare({{ $typeArg }}->items[i], old_val, NULL)) {
 			{{ $typeArg }}->items[i] = new_val;
 			times--;
@@ -409,12 +409,16 @@ int
 		return 0;
 	}
 	
-	for (size_t i = 0; i < {{ $typeArg }}->len; i++) {
+	for (uint64_t i = 0; i < {{ $typeArg }}->len; i++) {
 		ift({{ $typeArg }}->items[i], user_data);
 	}
 	return 0;
 }
 
+/**
+ * qsort_compare is a simple implementation of the function required to be
+ * passed to qsort.
+ */
 static int
 qsort_compare(const void *x, const void *y) {
 	return (*({{ .Name }}*)x - *({{ .Name }}*)y);
@@ -434,23 +438,19 @@ void
 	}
 }
 
-int
-{{ $funcPrefix }}_repeat({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} val, const size_t times)
+uint64_t
+{{ $funcPrefix }}_repeat({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} val, const uint64_t times)
 {
-	if ({{ $typeArg }}->len == 0) {
-		return -1;
-	}
-
-	for (size_t i = 0; i < times; i++) {
+	for (uint64_t i = 0; i < times; i++) {
 		{{ $funcPrefix }}_append({{ $typeArg }}, val);
 	}
-	return 0;
+	return {{ $typeArg }}->len;
 }
 
-size_t
+uint64_t
 {{ $funcPrefix }}_count({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} val)
 {
-	size_t count = 0;
+	uint64_t count = 0;
 
 	if ({{ $typeArg }}->len == 0) {
 		return count;
@@ -458,13 +458,13 @@ size_t
 
 
 	if ({{ $typeArg }}->compare != NULL) {
-		for (size_t i = 0; i < {{ $typeArg }}->len; i++) {
+		for (uint64_t i = 0; i < {{ $typeArg }}->len; i++) {
 			if ({{ $typeArg }}->compare({{ $typeArg }}->items[i], val, NULL)) {
 				count++;
 			}
 		}
 	} else {
-		for (size_t i = 0; i < {{ $typeArg }}->len; i++) {
+		for (uint64_t i = 0; i < {{ $typeArg }}->len; i++) {
 			if ({{ $typeArg }}->items[i] == val) {
 				count++;
 			}
@@ -473,8 +473,8 @@ size_t
 	return count;
 }
 
-size_t
-{{ $funcPrefix }}_grow({{ $typeName }} *{{ $typeArg }}, const size_t size)
+uint64_t
+{{ $funcPrefix }}_grow({{ $typeName }} *{{ $typeArg }}, const uint64_t size)
 {
 	if (size == 0) {
 		return {{ $typeArg }}->cap;
@@ -486,7 +486,7 @@ size_t
 	return {{ $typeArg }}->cap;
 }
 
-size_t
+uint64_t
 {{ $funcPrefix }}_concat({{ $typeName }} *{{ $typeArg }}1, const {{ $typeName }} *{{ $typeArg }}2)
 {
 	if ({{ $typeArg }}2->len == 0) {
@@ -496,7 +496,7 @@ size_t
 	{{ $typeArg }}1->cap += {{ $typeArg }}2->len;
 	{{ $typeArg }}1->items = realloc({{ $typeArg }}1->items, sizeof({{ .Name }}) * {{ $typeArg }}2->len);
 
-	for (size_t i = 0, j = {{ $typeArg }}1->len; i < {{ $typeArg }}2->len; i++, j++) {
+	for (uint64_t i = 0, j = {{ $typeArg }}1->len; i < {{ $typeArg }}2->len; i++, j++) {
 		{{ $typeArg }}1->items[j] = {{ $typeArg }}2->items[i];
 		{{ $typeArg }}1->len++;
 	}
