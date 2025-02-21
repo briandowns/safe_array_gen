@@ -98,7 +98,7 @@ bool
  * enough space in slice 2 and overwrite its contents.
  */
 uint64_t
-{{ $funcPrefix }}_copy(const {{ $typeName }} *{{ $typeArg }}1, {{ $typeName }} *{{ $typeArg }}2, int overwrite);
+{{ $funcPrefix }}_copy(const {{ $typeName }} *{{ $typeArg }}1, {{ $typeName }} *{{ $typeArg }}2, bool overwrite);
 
 /**
  * {{ $funcPrefix }}_contains checks to see if the given value is in the slice.
@@ -313,7 +313,7 @@ bool
 }
 
 uint64_t
-{{ $funcPrefix }}_copy(const {{ $typeName }} *{{ $typeArg }}1, {{ $typeName }} *{{ $typeArg }}2, int overwrite)
+{{ $funcPrefix }}_copy(const {{ $typeName }} *{{ $typeArg }}1, {{ $typeName }} *{{ $typeArg }}2, bool overwrite)
 {
 	if ({{ $typeArg }}2->len == 0) {
 		return 0;
@@ -415,6 +415,10 @@ int
 	return 0;
 }
 
+/ **
+  * qsort_compare is a simple implementation of the function required to be
+  * passed to qsort.
+  */
 static int
 qsort_compare(const void *x, const void *y) {
 	return (*({{ .Name }}*)x - *({{ .Name }}*)y);
