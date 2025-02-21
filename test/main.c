@@ -7,7 +7,7 @@
 #include <unistd.h>
 
 #include "int_slice.h"
-#include "utest.h"
+#include "crosscheck.h"
 
 void
 print_item(int item, void *user_data)
