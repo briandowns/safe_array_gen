@@ -296,8 +296,8 @@ bool
 	}
 
 	if ({{ $typeArg }}1->compare != NULL) {
-		for (uint64_t i = 0; i < s1->len; i++) {
-			if (!{{ $typeArg }}1->compare(s1->items[i], {{ $typeArg }}2->items[i], user_data)) {
+		for (uint64_t i = 0; i < {{ $typeArg }}1->len; i++) {
+			if (!{{ $typeArg }}1->compare({{ $typeArg }}1->items[i], {{ $typeArg }}2->items[i], user_data)) {
 				return false;
 			}
 		}
