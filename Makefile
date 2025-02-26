@@ -16,6 +16,8 @@ $(BINDIR)/$(BINARY): clean
 .PHONY: test
 test:
 	$(GO) test -v .
+	cd test && \
+	make
 
 .PHONY: clean
 clean:
