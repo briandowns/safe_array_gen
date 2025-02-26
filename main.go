@@ -55,7 +55,7 @@ Usage: %[2]s [-t types]
 Options:
     -h            help
     -v            show version and exit
-    -t            types, comma seperated (int8,int16,...)
+    -t            types, comma separated (int8,int16,...)
     -a            only generate implementation code and append 
                   to the given file
     -n            custom name for the given type

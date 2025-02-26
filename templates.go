@@ -121,7 +121,7 @@ int
 {{ $funcPrefix }}_replace_by_idx({{ $typeName }} *{{ $typeArg }}, const uint64_t idx, const {{ .Name }} val);
 
 /**
- * {{ $funcPrefix }}_replace_by_val replaces occurances of the value with the
+ * {{ $funcPrefix }}_replace_by_val replaces occurrences of the value with the
  * new value the number of times given. 
  */
 int
@@ -148,7 +148,7 @@ int
 {{ $funcPrefix }}_foreach({{ $typeName }} *{{ $typeArg }}, foreach_func_t ift, void *user_data);
 
 /**
- * {{ $funcPrefix }}_sort uses thet Quick Sort algorithm to sort the contents
+ * {{ $funcPrefix }}_sort uses that Quick Sort algorithm to sort the contents
  * of the slice if it is a standard type. When using a custom type for items,
  * like a struct, a sort_compare_func_t needs to be set.
  */
@@ -163,7 +163,7 @@ uint64_t
 {{ $funcPrefix }}_repeat({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} val, const uint64_t times);
 
 /**
- * {{ $funcPrefix }}_count counts the occurances of the given value.
+ * {{ $funcPrefix }}_count counts the occurrences of the given value.
  */
 uint64_t
 {{ $funcPrefix }}_count({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} val);

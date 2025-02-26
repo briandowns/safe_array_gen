@@ -18,17 +18,17 @@ All functions take the `(type)_slice_t` type as the first argument. Within that 
 | contains | Checks to see if the given value is in the slice.|
 | delete | Deletes an item from the slice.|
 | replace_by_idx | Replaces an item by index from the slice.|
-| replace_by_val | Replaces n occurances of an item from the slice.|
+| replace_by_val | Replaces n occurrences of an item from the slice.|
 | first | Retrieves the first item in the slice.|
 | last | Retrieves the last item in the slice.|
 | foreach | Takes a function to be ran for each element in the slice.|
 | sort | When using structs or non integer types, a custom compare func is required to be set.|
 | repeat | Repeat a value for the given number of times.|
-| count | Counts the number of occurances of a given value. If compare is not `NULL` that function is used to do the comparison.|
+| count | Counts the number of occurrences of a given value. If compare is not `NULL` that function is used to do the comparison.|
 | grow | Grows the slice by the given quantity.|
 | concat | Concatenate 2 slices into 1.|
 
-More detailed documention can be found in the generated header file.
+More detailed documentation can be found in the generated header file.
 
 ## Usage
 
