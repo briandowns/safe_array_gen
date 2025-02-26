@@ -33,6 +33,7 @@ jobs:
           sudo apt install -y make build-essential
         elif [ "${RUNNER_OS}" == "macOS" ]; then
           brew update
+          brew install go
         fi
     - name: Compile Shared Object
       run: make
