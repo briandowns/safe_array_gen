@@ -69,9 +69,9 @@ test_slice_contains()
     int_slice_append(s1, 100);
     int_slice_append(s1, 7);
     
-    CC_ASSERT(int_slice_contains(s1, 9));
-    CC_ASSERT(int_slice_contains(s1, 100));
-    CC_ASSERT(int_slice_contains(s1, 7));
+    CC_ASSERT_TRUE(int_slice_contains(s1, 9));
+    CC_ASSERT_TRUE(int_slice_contains(s1, 100));
+    CC_ASSERT_TRUE(int_slice_contains(s1, 7));
 
     CC_SUCCESS;
 }
@@ -82,7 +82,6 @@ test_slice_delete()
     int_slice_append(s1, 9);
     int_slice_append(s1, 100);
     int_slice_append(s1, 7);
-    
     int_slice_delete(s1, 2);
 
     CC_ASSERT_UINT64_EQUAL(s1->len, 2);
@@ -109,8 +108,8 @@ test_slice_count()
     int_slice_append(s1, 7);
     int_slice_append(s1, 7);
     int_slice_append(s1, 7);
-
     uint64_t count = int_slice_count(s1, 7);
+
     CC_ASSERT_UINT64_EQUAL(count, 3);
 
     CC_SUCCESS;
@@ -122,8 +121,8 @@ test_slice_sort()
     int_slice_append(s1, 100);
     int_slice_append(s1, 1000);
     int_slice_append(s1, 9);
-
     int_slice_sort(s1);
+
     CC_ASSERT_INT_EQUAL(int_slice_get(s1, 0), 9);
     CC_ASSERT_INT_EQUAL(int_slice_get(s1, 1), 100);
     CC_ASSERT_INT_EQUAL(int_slice_get(s1, 2), 1000);
@@ -140,7 +139,6 @@ test_slice_replace_by_val()
     int_slice_append(s1, 100);
     int_slice_append(s1, 100);
     int_slice_append(s1, 100);
-
     int_slice_replace_by_val(s1, 100, 700, 3);
 
     CC_ASSERT_UINT64_EQUAL(int_slice_count(s1, 700), 3);
@@ -165,6 +163,7 @@ cc_result_t
 test_slice_grow()
 {
     int_slice_grow(s1, 2);
+
     CC_ASSERT_UINT64_EQUAL(s1->cap, 5);
 
     CC_SUCCESS;
@@ -174,7 +173,6 @@ cc_result_t
 test_slice_concat()
 {
     int_slice_t *s2 = int_slice_new(3);
-
     int_slice_append(s1, 7);
     int_slice_append(s1, 7);
     int_slice_append(s1, 7);
@@ -186,10 +184,11 @@ test_slice_concat()
     int_slice_append(s2, 9);
     int_slice_append(s2, 9);
 
-    CC_ASSERT_EQUAL_SIZE_T(s2->len, 3);
-    CC_ASSERT_EQUAL_SIZE_T(s2->cap, 3);
+    CC_ASSERT_UINT64_EQUAL(s2->len, 3);
+    CC_ASSERT_UINT64_EQUAL(s2->cap, 3);
 
-    size_t s1_len = int_slice_concat(s1, s2);
+    uint64_t s1_len = int_slice_concat(s1, s2);
+
     CC_ASSERT_UINT64_EQUAL(s1_len, 6); // purposefully wrong... correct (6)
 
     int_slice_free(s2);
