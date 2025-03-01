@@ -124,7 +124,7 @@ int
 int_slice_foreach(int_slice_t *s, foreach_func_t ift, void *user_data);
 
 /**
- * int_slice_sort uses thet Quick Sort algorithm to sort the contents
+ * int_slice_sort uses the Quick Sort algorithm to sort the contents
  * of the slice if it is a standard type. When using a custom type for items,
  * like a struct, a sort_compare_func_t needs to be set.
  */
