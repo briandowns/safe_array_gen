@@ -68,26 +68,14 @@ int_slice_reverse(int_slice_t *s) {
 }
 
 bool
-int_slice_compare(const int_slice_t *s1, const int_slice_t *s2, void *user_data)
+int_slice_compare(const int_slice_t *s1, const int_slice_t *s2, compare_func_t compare, void *user_data)
 {
-	if (s1->len == 0 && s2->len == 0) {
-		return true;
-	}
 	if (s1->len != s2->len) {
 		return false;
 	}
 
-	if (s1->compare != NULL) {
-		for (uint64_t i = 0; i < s1->len; i++) {
-			if (!s1->compare(s1->items[i], s2->items[i], user_data)) {
-				return false;
-			}
-		}
-		return true;
-	}
-
 	for (uint64_t i = 0; i < s1->len; i++) {
-		if (s1->items[i] != s2->items[i]) {
+		if (!compare(s1->items[i], s2->items[i], user_data)) {
 			return false;
 		}
 	}
@@ -157,14 +145,14 @@ int_slice_replace_by_idx(int_slice_t *s, const uint64_t idx, const int val)
 }
 
 int
-int_slice_replace_by_val(int_slice_t *s, const int old_val, const int new_val, uint64_t times)
+int_slice_replace_by_val(int_slice_t *s, const int old_val, const int new_val, uint64_t times, compare_func_t compare)
 {
 	if (s->len == 0) {
 		return -1;
 	}
 
 	for (uint64_t i = 0; i < s->len && times != 0; i++) {
-		if (s->compare(s->items[i], old_val, NULL)) {
+		if (compare(s->items[i], old_val, NULL)) {
 			s->items[i] = new_val;
 			times--;
 		}
@@ -230,7 +218,7 @@ int_slice_repeat(int_slice_t *s, const int val, const uint64_t times)
 }
 
 uint64_t
-int_slice_count(int_slice_t *s, const int val)
+int_slice_count(int_slice_t *s, const int val, compare_func_t compare)
 {
 	uint64_t count = 0;
 
@@ -238,18 +226,9 @@ int_slice_count(int_slice_t *s, const int val)
 		return count;
 	}
 
-
-	if (s->compare != NULL) {
-		for (uint64_t i = 0; i < s->len; i++) {
-			if (s->compare(s->items[i], val, NULL)) {
-				count++;
-			}
-		}
-	} else {
-		for (uint64_t i = 0; i < s->len; i++) {
-			if (s->items[i] == val) {
-				count++;
-			}
+	for (uint64_t i = 0; i < s->len; i++) {
+		if (compare(s->items[i], val, NULL)) {
+			count++;
 		}
 	}
 	return count;

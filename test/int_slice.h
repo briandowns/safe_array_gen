@@ -22,7 +22,6 @@ typedef struct {
     int *items;
     uint64_t len;
     uint64_t cap;
-	compare_func_t compare;
 	sort_compare_func_t sort_compare;
 } int_slice_t;
 
@@ -64,7 +63,7 @@ int_slice_reverse(int_slice_t *s);
  * and returns true if they are the same and false if they are not.
  */
 bool
-int_slice_compare(const int_slice_t *s1, const int_slice_t *s2, void *user_data);
+int_slice_compare(const int_slice_t *s1, const int_slice_t *s2, compare_func_t compare, void *user_data);
 
 /**
  * int_slice_copy takes 2 slices. The first is copied into the second
@@ -101,7 +100,7 @@ int_slice_replace_by_idx(int_slice_t *s, const uint64_t idx, const int val);
  * new value the number of times given. 
  */
 int
-int_slice_replace_by_val(int_slice_t *s, const int old_val, const int new_val, uint64_t times);
+int_slice_replace_by_val(int_slice_t *s, const int old_val, const int new_val, uint64_t times, compare_func_t compare);
 
 /**
  * int_slice returns the first element of the slice.
@@ -124,7 +123,7 @@ int
 int_slice_foreach(int_slice_t *s, foreach_func_t ift, void *user_data);
 
 /**
- * int_slice_sort uses the Quick Sort algorithm to sort the contents
+ * int_slice_sort uses that Quick Sort algorithm to sort the contents
  * of the slice if it is a standard type. When using a custom type for items,
  * like a struct, a sort_compare_func_t needs to be set.
  */
@@ -142,7 +141,7 @@ int_slice_repeat(int_slice_t *s, const int val, const uint64_t times);
  * int_slice_count counts the occurrences of the given value.
  */
 uint64_t
-int_slice_count(int_slice_t *s, const int val);
+int_slice_count(int_slice_t *s, const int val, compare_func_t compare);
 
 /**
  * int_slice_grow Grows the slice by the given size.

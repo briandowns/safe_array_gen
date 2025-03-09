@@ -108,7 +108,7 @@ test_slice_count()
     int_slice_append(s1, 7);
     int_slice_append(s1, 7);
     int_slice_append(s1, 7);
-    uint64_t count = int_slice_count(s1, 7);
+    uint64_t count = int_slice_count(s1, 7, compare_func);
 
     CC_ASSERT_UINT64_EQUAL(count, 3);
 
@@ -133,16 +133,14 @@ test_slice_sort()
 cc_result_t
 test_slice_replace_by_val()
 {
-    s1->compare = compare_func;
+    int_slice_append(s1, 100);
+    int_slice_append(s1, 100);
+    int_slice_append(s1, 100);
+    int_slice_append(s1, 100);
+    int_slice_replace_by_val(s1, 100, 700, 3, compare_func);
 
-    int_slice_append(s1, 100);
-    int_slice_append(s1, 100);
-    int_slice_append(s1, 100);
-    int_slice_append(s1, 100);
-    int_slice_replace_by_val(s1, 100, 700, 3);
-
-    CC_ASSERT_UINT64_EQUAL(int_slice_count(s1, 700), 3);
-    CC_ASSERT_UINT64_EQUAL(int_slice_count(s1, 100), 1);
+    CC_ASSERT_UINT64_EQUAL(int_slice_count(s1, 700, compare_func), 3);
+    CC_ASSERT_UINT64_EQUAL(int_slice_count(s1, 100, compare_func), 1);
 
     CC_SUCCESS;
 }

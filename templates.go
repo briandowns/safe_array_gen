@@ -29,12 +29,11 @@ typedef bool (*val_equal_func_t)(const {{ .Name }} x, const {{ .Name }} y, void 
 {{- if .CustomName -}}
 {{- $typeName = .CustomName }}
 {{- $funcPrefix = $typeName }}
-{{ $typeArg = printf "%c" (index $typeName 0) -}}
+{{ $typeArg = printf "%c" (index $typeName 0) }}
 typedef struct {
     {{ .Name }} {{ $items }};
     uint64_t len;
     uint64_t cap;
-	compare_func_t compare;
 	sort_compare_func_t sort_compare;
 } {{ $typeName }};
 {{- else -}}
@@ -45,7 +44,6 @@ typedef struct {
     {{ .Name }} {{ $items }};
     uint64_t len;
     uint64_t cap;
-	compare_func_t compare;
 	sort_compare_func_t sort_compare;
 } {{ $typeName }};
 {{- end }}
@@ -88,7 +86,7 @@ void
  * and returns true if they are the same and false if they are not.
  */
 bool
-{{ $funcPrefix }}_compare(const {{ $typeName }} *{{ $typeArg }}1, const {{ $typeName }} *{{ $typeArg }}2, void *user_data);
+{{ $funcPrefix }}_compare(const {{ $typeName }} *{{ $typeArg }}1, const {{ $typeName }} *{{ $typeArg }}2, compare_func_t compare, void *user_data);
 
 /**
  * {{ $funcPrefix }}_copy takes 2 slices. The first is copied into the second
@@ -125,7 +123,7 @@ int
  * new value the number of times given. 
  */
 int
-{{ $funcPrefix }}_replace_by_val({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} old_val, const {{ .Name }} new_val, uint64_t times);
+{{ $funcPrefix }}_replace_by_val({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} old_val, const {{ .Name }} new_val, uint64_t times, compare_func_t compare);
 
 /**
  * {{ $funcPrefix }} returns the first element of the slice.
@@ -166,7 +164,7 @@ uint64_t
  * {{ $funcPrefix }}_count counts the occurrences of the given value.
  */
 uint64_t
-{{ $funcPrefix }}_count({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} val);
+{{ $funcPrefix }}_count({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} val, compare_func_t compare);
 
 /**
  * {{ $funcPrefix }}_grow Grows the slice by the given size.
@@ -223,7 +221,6 @@ typedef struct {
     {{ .Name }} {{ $items }};
     uint64_t len;
     uint64_t cap;
-	compare_func_t compare;
 	sort_compare_func_t sort_compare;
 } {{ $typeName }};
 {{- end -}}
@@ -286,26 +283,14 @@ void
 }
 
 bool
-{{ $funcPrefix }}_compare(const {{ $typeName }} *{{ $typeArg }}1, const {{ $typeName }} *{{ $typeArg }}2, void *user_data)
+{{ $funcPrefix }}_compare(const {{ $typeName }} *{{ $typeArg }}1, const {{ $typeName }} *{{ $typeArg }}2, compare_func_t compare, void *user_data)
 {
-	if ({{ $typeArg }}1->len == 0 && {{ $typeArg }}2->len == 0) {
-		return true;
-	}
 	if ({{ $typeArg }}1->len != {{ $typeArg }}2->len) {
 		return false;
 	}
 
-	if ({{ $typeArg }}1->compare != NULL) {
-		for (uint64_t i = 0; i < {{ $typeArg }}1->len; i++) {
-			if (!{{ $typeArg }}1->compare({{ $typeArg }}1->items[i], {{ $typeArg }}2->items[i], user_data)) {
-				return false;
-			}
-		}
-		return true;
-	}
-
 	for (uint64_t i = 0; i < {{ $typeArg }}1->len; i++) {
-		if ({{ $typeArg }}1->items[i] != {{ $typeArg }}2->items[i]) {
+		if (!compare({{ $typeArg }}1->items[i], {{ $typeArg }}2->items[i], user_data)) {
 			return false;
 		}
 	}
@@ -375,14 +360,14 @@ int
 }
 
 int
-{{ $funcPrefix }}_replace_by_val({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} old_val, const {{ .Name }} new_val, uint64_t times)
+{{ $funcPrefix }}_replace_by_val({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} old_val, const {{ .Name }} new_val, uint64_t times, compare_func_t compare)
 {
 	if ({{ $typeArg }}->len == 0) {
 		return -1;
 	}
 
 	for (uint64_t i = 0; i < {{ $typeArg }}->len && times != 0; i++) {
-		if ({{ $typeArg }}->compare({{ $typeArg }}->items[i], old_val, NULL)) {
+		if (compare({{ $typeArg }}->items[i], old_val, NULL)) {
 			{{ $typeArg }}->items[i] = new_val;
 			times--;
 		}
@@ -448,7 +433,7 @@ uint64_t
 }
 
 uint64_t
-{{ $funcPrefix }}_count({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} val)
+{{ $funcPrefix }}_count({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} val, compare_func_t compare)
 {
 	uint64_t count = 0;
 
@@ -456,18 +441,9 @@ uint64_t
 		return count;
 	}
 
-
-	if ({{ $typeArg }}->compare != NULL) {
-		for (uint64_t i = 0; i < {{ $typeArg }}->len; i++) {
-			if ({{ $typeArg }}->compare({{ $typeArg }}->items[i], val, NULL)) {
-				count++;
-			}
-		}
-	} else {
-		for (uint64_t i = 0; i < {{ $typeArg }}->len; i++) {
-			if ({{ $typeArg }}->items[i] == val) {
-				count++;
-			}
+	for (uint64_t i = 0; i < {{ $typeArg }}->len; i++) {
+		if (compare({{ $typeArg }}->items[i], val, NULL)) {
+			count++;
 		}
 	}
 	return count;
