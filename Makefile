@@ -29,16 +29,16 @@ clean:
 .PHONY: install
 install: clean
 ifeq ($(OS),Darwin)
-	./build.sh darwin $(BINARY) $(VERSION) $(GIT_SHA)
+	go build -v $(LDFLAGS) -o $(BINDIR)/$(BINARY)-darwin
 	cp -f $(BINDIR)/$(BINARY)-darwin $(PREFIX)/$(BINDIR)/$(BINARY)
 endif 
 ifeq ($(OS),Linux)
-	./build.sh linux $(BINARY) $(VERSION) $(GIT_SHA)
-	cp -f $(BINDIR)/$(BINARY)-linux $(PREFIX)/$(BINDIR)/$(BINARY)
+	go build -v $(LDFLAGS) -o $(BINDIR)/$(BINARY)-linux
+	sudo install $(BINDIR)/$(BINARY)-linux $(PREFIX)/$(BINDIR)/$(BINARY)
 endif
 ifeq ($(OS),FreeBSD)
-	./build.sh freebsd $(BINARY) $(VERSION) $(GIT_SHA)
-	cp -f $(BINDIR)/$(BINARY)-freebsd $(PREFIX)/$(BINDIR)/$(BINARY)
+	go build -v $(LDFLAGS) -o $(BINDIR)/$(BINARY)-freebsd
+	sudo install $(BINDIR)/$(BINARY)-freebsd $(PREFIX)/$(BINDIR)/$(BINARY)
 endif
 uninstall: 
 	rm -f $(PREFIX)/$(BINDIR)/$(BINARY)*
