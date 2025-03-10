@@ -21,6 +21,11 @@ compare_func(const int x, const int y, void *user_data)
     return x == y;
 }
 
+int
+qsort_compare(const void *x, const void *y) {
+	return (*(int*)x - *(int*)y);
+}
+
 int_slice_t *s1;
 
 void
@@ -121,7 +126,7 @@ test_slice_sort()
     int_slice_append(s1, 100);
     int_slice_append(s1, 1000);
     int_slice_append(s1, 9);
-    int_slice_sort(s1);
+    int_slice_sort(s1, qsort_compare);
 
     CC_ASSERT_INT_EQUAL(int_slice_get(s1, 0), 9);
     CC_ASSERT_INT_EQUAL(int_slice_get(s1, 1), 100);

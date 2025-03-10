@@ -195,17 +195,17 @@ qsort_compare(const void *x, const void *y) {
 }
 
 void
-int_slice_sort(int_slice_t *s)
+int_slice_sort(int_slice_t *s, sort_compare_func_t sort_compare)
 {
 	if (s->len < 2) {
 		return;
 	}
 
-	if (s->sort_compare != NULL) {
-		qsort(s->items, s->len, sizeof(int), s->sort_compare);
-	} else {
-		qsort(s->items, s->len, sizeof(int), qsort_compare);
+	if (sort_compare == NULL) {
+		return ;
 	}
+
+	qsort(s->items, s->len, sizeof(int), sort_compare);
 }
 
 uint64_t

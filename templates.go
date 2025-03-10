@@ -19,7 +19,7 @@ extern "C" {
 
 typedef bool (*compare_func_t)(const {{ .Name }} x, const {{ .Name }} y, void *user_data);
 typedef void (*foreach_func_t)(const {{ .Name }} item, void *user_data);
-typedef int (*sort_compare_func_t)(const void *x, const void *y);
+typedef int  (*sort_compare_func_t)(const void *x, const void *y);
 typedef bool (*val_equal_func_t)(const {{ .Name }} x, const {{ .Name }} y, void *user_data);
 
 {{- $items := "*items" -}}
@@ -34,7 +34,6 @@ typedef struct {
     {{ .Name }} {{ $items }};
     uint64_t len;
     uint64_t cap;
-	sort_compare_func_t sort_compare;
 } {{ $typeName }};
 {{- else -}}
 {{- $typeName = printf "%s_slice_t" $name }}
@@ -44,7 +43,6 @@ typedef struct {
     {{ .Name }} {{ $items }};
     uint64_t len;
     uint64_t cap;
-	sort_compare_func_t sort_compare;
 } {{ $typeName }};
 {{- end }}
 
@@ -147,11 +145,10 @@ int
 
 /**
  * {{ $funcPrefix }}_sort uses that Quick Sort algorithm to sort the contents
- * of the slice if it is a standard type. When using a custom type for items,
- * like a struct, a sort_compare_func_t needs to be set.
+ * of the slice.
  */
 void
-{{ $funcPrefix }}_sort({{ $typeName }} *{{ $typeArg }});
+{{ $funcPrefix }}_sort({{ $typeName }} *{{ $typeArg }}, sort_compare_func_t sort_compare);
 
 /**
  * {{ $funcPrefix }}_repeat takes a value and repeats that value in the slice
@@ -221,7 +218,6 @@ typedef struct {
     {{ .Name }} {{ $items }};
     uint64_t len;
     uint64_t cap;
-	sort_compare_func_t sort_compare;
 } {{ $typeName }};
 {{- end -}}
 {{- $name := Strip .Name "_t" }}
@@ -410,17 +406,17 @@ qsort_compare(const void *x, const void *y) {
 }
 
 void
-{{ $funcPrefix }}_sort({{ $typeName }} *{{ $typeArg }})
+{{ $funcPrefix }}_sort({{ $typeName }} *{{ $typeArg }}, sort_compare_func_t sort_compare)
 {
 	if ({{ $typeArg }}->len < 2) {
 		return;
 	}
 
-	if ({{ $typeArg }}->sort_compare != NULL) {
-		qsort({{ $typeArg }}->items, {{ $typeArg }}->len, sizeof({{ .Name }}), {{ $typeArg }}->sort_compare);
-	} else {
-		qsort({{ $typeArg }}->items, {{ $typeArg }}->len, sizeof({{ .Name }}), qsort_compare);
+	if (sort_compare == NULL) {
+		return ;
 	}
+
+	qsort({{ $typeArg }}->items, {{ $typeArg }}->len, sizeof({{ .Name }}), sort_compare);
 }
 
 uint64_t

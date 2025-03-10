@@ -15,14 +15,13 @@ extern "C" {
 
 typedef bool (*compare_func_t)(const int x, const int y, void *user_data);
 typedef void (*foreach_func_t)(const int item, void *user_data);
-typedef int (*sort_compare_func_t)(const void *x, const void *y);
+typedef int  (*sort_compare_func_t)(const void *x, const void *y);
 typedef bool (*val_equal_func_t)(const int x, const int y, void *user_data);
 
 typedef struct {
     int *items;
     uint64_t len;
     uint64_t cap;
-	sort_compare_func_t sort_compare;
 } int_slice_t;
 
 /**
@@ -124,11 +123,10 @@ int_slice_foreach(int_slice_t *s, foreach_func_t ift, void *user_data);
 
 /**
  * int_slice_sort uses that Quick Sort algorithm to sort the contents
- * of the slice if it is a standard type. When using a custom type for items,
- * like a struct, a sort_compare_func_t needs to be set.
+ * of the slice.
  */
 void
-int_slice_sort(int_slice_t *s);
+int_slice_sort(int_slice_t *s, sort_compare_func_t sort_compare);
 
 /**
  * int_slice_repeat takes a value and repeats that value in the slice
