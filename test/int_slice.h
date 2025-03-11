@@ -96,7 +96,7 @@ int_slice_replace_by_idx(int_slice_t *s, const uint64_t idx, const int val);
 
 /**
  * int_slice_replace_by_val replaces occurrences of the value with the
- * new value the number of times given. 
+ * new value, the number of times given. 
  */
 int
 int_slice_replace_by_val(int_slice_t *s, const int old_val, const int new_val, uint64_t times, compare_func_t compare);

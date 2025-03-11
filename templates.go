@@ -118,7 +118,7 @@ int
 
 /**
  * {{ $funcPrefix }}_replace_by_val replaces occurrences of the value with the
- * new value the number of times given. 
+ * new value, the number of times given. 
  */
 int
 {{ $funcPrefix }}_replace_by_val({{ $typeName }} *{{ $typeArg }}, const {{ .Name }} old_val, const {{ .Name }} new_val, uint64_t times, compare_func_t compare);
