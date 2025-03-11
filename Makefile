@@ -13,18 +13,16 @@ OS := $(shell uname)
 $(BINDIR)/$(BINARY): clean
 	$(GO) build $(LDFLAGS) -o $@
 
-.PHONY: test
-test:
-	$(GO) test -v .
-	cd test && \
-	make
-
 .PHONY: clean
 clean:
 	$(GO) clean
-	rm -f $(BINARY)
 	rm -f $(BINDIR)/*
 	rm -f *.c *.h
+
+.PHONY: test
+test: clean $(BINDIR)/$(BINARY)
+	$(GO) test -v .
+	cd test && make
 
 .PHONY: install
 install: clean
